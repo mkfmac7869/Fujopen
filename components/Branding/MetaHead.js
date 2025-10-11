@@ -16,7 +16,7 @@ const MetaComponent = () => (
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon-32x32.png" />
     <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="msapplication-TileImage" content="/favicons/ms-icon-144x144.png" />
+    <meta name="msapplication-TileImage" content="/favicons/favicon-32x32.png" />
     {/* PWA primary color */}
     <meta name="theme-color" content={theme.cyber.palette.primary.main} />
     <link
