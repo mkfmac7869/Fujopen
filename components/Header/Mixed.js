@@ -7,7 +7,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import link from 'public/text/link';
 import Logo from '../Branding/Logo';
-import ModernMobileMenu from './ModernMobileMenu';
+import BottomMobileNav from './BottomMobileNav';
 import HeaderMenu from './TopNav/MixedNav';
 import UserMenu from './TopNav/UserMenu';
 import useStyles from './header-style';
@@ -56,12 +56,7 @@ function Mixed(props) {
 
   return (
     <Fragment>
-      {isMobile && (
-        <ModernMobileMenu
-          open={openDrawer}
-          toggleDrawer={handleOpenDrawer}
-        />
-      )}
+      {isMobile && <BottomMobileNav />}
       <AppBar
         position="absolute"
         id="header"
@@ -103,17 +98,6 @@ function Mixed(props) {
               )}
             </nav>
             <UserMenu onToggleDark={onToggleDark} onToggleDir={onToggleDir} />
-            { isMobile && (
-              <IconButton
-                onClick={handleOpenDrawer}
-                className={cx('hamburger hamburger--spin', classes.mobileMenu, openDrawer && 'is-active')}
-                size="large"
-              >
-                <span className="hamburger-box">
-                  <span className={cx(classes.bar, 'hamburger-inner')} />
-                </span>
-              </IconButton>
-            )}
           </div>
         </Container>
       </AppBar>
