@@ -194,6 +194,11 @@ const single = {
       link: '/hotel'
     },
     {
+      id: 'transportation',
+      name: 'header_transportation', // Translation key
+      link: '/transportation'
+    },
+    {
       id: 'profile',
       name: 'header_profile', // Translation key
       link: '/profile'

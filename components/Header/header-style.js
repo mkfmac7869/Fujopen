@@ -187,11 +187,15 @@ const headerStyles = makeStyles({ uniqId: 'header' })((theme, _params, classes) 
       position: 'relative',
       padding: 0,
       margin: 0,
+      display: 'flex',
+      flexWrap: 'nowrap',
+      alignItems: 'center',
       '& > li': {
         display: 'inline-block',
         position: 'relative',
-        margin: theme.spacing(0, 0.75),
+        margin: theme.spacing(0, 0.5),
         listStyle: 'none',
+        flexShrink: 0,
         '& a, button': {
           color: 'inherit',
           textTransform: 'capitalize',
@@ -233,10 +237,15 @@ const headerStyles = makeStyles({ uniqId: 'header' })((theme, _params, classes) 
     }
   },
   scrollactiveNav: {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
     '& li': {
+      flexShrink: 0,
       '& a, button': {
-        padding: theme.spacing(0.5, 2),
-        fontSize: 16,
+        padding: theme.spacing(0.5, 1.5),
+        fontSize: 15,
+        whiteSpace: 'nowrap',
       },
     }
   },

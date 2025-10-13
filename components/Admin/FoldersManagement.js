@@ -417,7 +417,32 @@ function FoldersManagement() {
 
       await updateDoc(doc(db, 'visaApplications', selectedApplication.id), updateData);
 
-      setSnackbar({ open: true, message: 'Status updated successfully!', severity: 'success' });
+      // Send status update email via API
+      try {
+        const emailType = (newStatus === 'approved' && updateData.approvedVisaFile) ? 'approved' : 'status';
+        const emailResponse = await fetch('/api/send-visa-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: emailType,
+            email: selectedApplication.userEmail,
+            name: selectedApplication.fullNameEnglish,
+            status: newStatus,
+            visaUrl: updateData.approvedVisaFile,
+            applicationData: selectedApplication,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Visa email sent to:', selectedApplication.userEmail);
+        } else {
+          console.error('❌ Failed to send visa email');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending visa email:', emailError);
+      }
+
+      setSnackbar({ open: true, message: 'Status updated successfully! Email sent to applicant.', severity: 'success' });
       setEditDialog(false);
       setVisaFile(null);
       setAdditionalNotes('');

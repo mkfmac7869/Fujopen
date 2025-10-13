@@ -42,7 +42,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
 
-function ChampionshipAbout() {
+function ChampionshipOutline() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [eventData, setEventData] = useState(null);
@@ -114,10 +114,7 @@ function ChampionshipAbout() {
         {/* Event Overview */}
         <Grid container spacing={4} sx={{ mb: 6 }}>
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ 
-              height: '100%',
-              ...glassCard
-            }}>
+            <Card elevation={0} sx={{ height: '100%', ...glassCard }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <EventIcon />
@@ -137,10 +134,7 @@ function ChampionshipAbout() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ 
-              height: '100%',
-              ...glassCard
-            }}>
+            <Card elevation={0} sx={{ height: '100%', ...glassCard }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <LocationOnIcon />
@@ -153,10 +147,7 @@ function ChampionshipAbout() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ 
-              height: '100%',
-              ...glassCard
-            }}>
+            <Card elevation={0} sx={{ height: '100%', ...glassCard }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <InfoIcon />
@@ -173,17 +164,7 @@ function ChampionshipAbout() {
         </Grid>
 
         {/* Competition Details */}
-        <Card elevation={0} sx={{ 
-          mb: 6,
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)'
-            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          borderRadius: 4,
-          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.9)'}`,
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-        }}>
+        <Card elevation={0} sx={{ mb: 6, ...glassCard }}>
           <CardContent>
             <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, color: 'primary.main' }}>
               Competition Information
@@ -248,14 +229,8 @@ function ChampionshipAbout() {
         </Typography>
         
         {Object.entries(eventData.medal_events).map(([division, genders]) => (
-          <Accordion key={division} defaultExpanded elevation={0} sx={{ 
-            mb: 2,
-            ...glassCard
-          }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ 
-              background: 'rgba(99, 102, 241, 0.08)',
-              borderRadius: '16px 16px 0 0'
-            }}>
+          <Accordion key={division} defaultExpanded elevation={0} sx={{ mb: 2, ...glassCard }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ background: 'rgba(99, 102, 241, 0.08)', borderRadius: '16px 16px 0 0' }}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>{division}</Typography>
             </AccordionSummary>
             <AccordionDetails>
@@ -267,13 +242,7 @@ function ChampionshipAbout() {
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       {categories.map((category, idx) => (
-                        <Chip 
-                          key={idx} 
-                          label={category} 
-                          color={gender === 'Male' ? 'primary' : 'secondary'}
-                          variant="outlined"
-                          sx={{ fontWeight: 600 }}
-                        />
+                        <Chip key={idx} label={category} color={gender === 'Male' ? 'primary' : 'secondary'} variant="outlined" sx={{ fontWeight: 600 }} />
                       ))}
                     </Box>
                   </Grid>
@@ -284,7 +253,7 @@ function ChampionshipAbout() {
         ))}
 
         {/* Eligibility */}
-        <Card elevation={3} sx={{ mb: 6, mt: 6 }}>
+        <Card elevation={0} sx={{ ...glassCard, mb: 6, mt: 6 }}>
           <CardContent>
             <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, color: 'primary.main' }}>
               Eligibility Requirements
@@ -294,31 +263,25 @@ function ChampionshipAbout() {
             <List>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText 
-                  primary="License" 
-                  secondary={eventData.eligibility.athletes.license}
-                />
+                <ListItemText primary="License" secondary={eventData.eligibility.athletes.license} />
               </ListItem>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText 
-                  primary="Union Membership" 
-                  secondary={eventData.eligibility.athletes.union}
-                />
+                <ListItemText primary="Union Membership" secondary={eventData.eligibility.athletes.union} />
               </ListItem>
             </List>
             
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 2, mb: 1 }}>Certificate Requirements:</Typography>
             {Object.entries(eventData.eligibility.athletes.certificate_requirements).map(([div, req]) => (
               <Typography key={div} variant="body2" sx={{ ml: 2, mb: 0.5 }}>
-                • <strong>{div}:</strong> {req}
+                <strong>{div}:</strong> {req}
               </Typography>
             ))}
 
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 2, mb: 1 }}>Birth Years:</Typography>
             {Object.entries(eventData.eligibility.athletes.birth_years).map(([div, year]) => (
               <Typography key={div} variant="body2" sx={{ ml: 2, mb: 0.5 }}>
-                • <strong>{div}:</strong> {year}
+                <strong>{div}:</strong> {year}
               </Typography>
             ))}
 
@@ -335,31 +298,19 @@ function ChampionshipAbout() {
             <List>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText 
-                  primary="Minimum Age" 
-                  secondary={`${eventData.eligibility.coaches.minimum_age} years old`}
-                />
+                <ListItemText primary="Minimum Age" secondary={`${eventData.eligibility.coaches.minimum_age} years old`} />
               </ListItem>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText 
-                  primary="Certificate" 
-                  secondary={eventData.eligibility.coaches.certificate}
-                />
+                <ListItemText primary="Certificate" secondary={eventData.eligibility.coaches.certificate} />
               </ListItem>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText 
-                  primary="License" 
-                  secondary={eventData.eligibility.coaches.license}
-                />
+                <ListItemText primary="License" secondary={eventData.eligibility.coaches.license} />
               </ListItem>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText 
-                  primary="Finals Attire" 
-                  secondary={eventData.eligibility.coaches.attire_finals}
-                />
+                <ListItemText primary="Finals Attire" secondary={eventData.eligibility.coaches.attire_finals} />
               </ListItem>
             </List>
           </CardContent>
@@ -426,9 +377,7 @@ function ChampionshipAbout() {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
               <LocationOnIcon color="info" fontSize="small" />
-              <Typography variant="body2">
-                {eventData.sport_equipment.sensor_socks_sales}
-              </Typography>
+              <Typography variant="body2">{eventData.sport_equipment.sensor_socks_sales}</Typography>
             </Box>
           </CardContent>
         </Card>
@@ -450,10 +399,7 @@ function ChampionshipAbout() {
             </TableHead>
             <TableBody>
               {eventData.detailed_schedule.map((schedule, idx) => (
-                <TableRow key={idx} sx={{ 
-                  '&:nth-of-type(odd)': { background: 'rgba(99, 102, 241, 0.05)' },
-                  '&:hover': { background: 'rgba(99, 102, 241, 0.1)' }
-                }}>
+                <TableRow key={idx} sx={{ '&:nth-of-type(odd)': { background: 'rgba(99, 102, 241, 0.05)' }, '&:hover': { background: 'rgba(99, 102, 241, 0.1)' } }}>
                   <TableCell sx={{ fontWeight: 600 }}>{schedule.date}</TableCell>
                   <TableCell>{schedule.time || '-'}</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>{schedule.activity}</TableCell>
@@ -474,15 +420,15 @@ function ChampionshipAbout() {
             
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Random Weigh-in</Typography>
             <Typography variant="body2" sx={{ ml: 2 }}>
-              • <strong>Time:</strong> {eventData.logistics.random_weigh_in.time}
+              <strong>Time:</strong> {eventData.logistics.random_weigh_in.time}
             </Typography>
             <Typography variant="body2" sx={{ ml: 2, mb: 2 }}>
-              • <strong>Publication:</strong> {eventData.logistics.random_weigh_in.publication_time} on {eventData.logistics.random_weigh_in.publication_platforms.join(', ')}
+              <strong>Publication:</strong> {eventData.logistics.random_weigh_in.publication_time} on {eventData.logistics.random_weigh_in.publication_platforms.join(', ')}
             </Typography>
 
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, mt: 3 }}>Accommodation & Visa</Typography>
             <Typography variant="body2" sx={{ ml: 2, mb: 1 }}>
-              • <strong>Transportation:</strong> {eventData.logistics.accommodation_and_visa.transportation_provided}
+              <strong>Transportation:</strong> {eventData.logistics.accommodation_and_visa.transportation_provided}
             </Typography>
             
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, mt: 2 }}>Free Visa Criteria:</Typography>
@@ -525,9 +471,7 @@ function ChampionshipAbout() {
                     borderRadius: 2,
                     boxShadow: 3
                   }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#000' }}>
-                      {award.place}
-                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#000' }}>{award.place}</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', textTransform: 'uppercase' }}>
                       {award.medal}
                     </Typography>
@@ -536,7 +480,7 @@ function ChampionshipAbout() {
                         {award.note}
                       </Typography>
                     )}
-        </Box>
+                  </Box>
                 </Grid>
               ))}
             </Grid>
@@ -566,7 +510,7 @@ function ChampionshipAbout() {
 const getStaticProps = makeStaticProps(['common']);
 export { getStaticPaths, getStaticProps };
 
-ChampionshipAbout.getLayout = (page, pageProps) => (
+ChampionshipOutline.getLayout = (page, pageProps) => (
   <HomeLayout
     home
     menu={singleMenu.main}
@@ -578,4 +522,5 @@ ChampionshipAbout.getLayout = (page, pageProps) => (
   </HomeLayout>
 );
 
-export default ChampionshipAbout;
+export default ChampionshipOutline;
+

@@ -14,22 +14,57 @@ class MyDocument extends Document {
         <head>
           <meta name="emotion-insertion-point" content="" />
           {this.props.emotionStyleTags}
-          {/* Tajawal Font for Arabic */}
+          {/* Tajawal Font for Arabic - ALWAYS LOAD */}
+          <link
+            href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
+            rel="stylesheet"
+          />
           {currentLocale === 'ar' && (
-            <>
-              <link
-                href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
-                rel="stylesheet"
-              />
-              <style>{`
-                * {
-                  font-family: 'Tajawal', sans-serif !important;
-                }
-                body, html, #__next {
-                  font-family: 'Tajawal', sans-serif !important;
-                }
-              `}</style>
-            </>
+            <style dangerouslySetInnerHTML={{__html: `
+              html[lang="ar"] * {
+                font-family: 'Tajawal', sans-serif !important;
+              }
+              html[lang="ar"] body,
+              html[lang="ar"] #__next,
+              html[lang="ar"] #__next > div {
+                font-family: 'Tajawal', sans-serif !important;
+              }
+              html[lang="ar"] h1,
+              html[lang="ar"] h2,
+              html[lang="ar"] h3,
+              html[lang="ar"] h4,
+              html[lang="ar"] h5,
+              html[lang="ar"] h6,
+              html[lang="ar"] p,
+              html[lang="ar"] span,
+              html[lang="ar"] div,
+              html[lang="ar"] a,
+              html[lang="ar"] button,
+              html[lang="ar"] input,
+              html[lang="ar"] textarea,
+              html[lang="ar"] label,
+              html[lang="ar"] li,
+              html[lang="ar"] td,
+              html[lang="ar"] th {
+                font-family: 'Tajawal', sans-serif !important;
+              }
+              html[lang="ar"] .MuiTypography-root,
+              html[lang="ar"] .MuiButton-root,
+              html[lang="ar"] .MuiInputBase-root,
+              html[lang="ar"] .MuiTab-root,
+              html[lang="ar"] .MuiChip-label,
+              html[lang="ar"] .MuiListItemText-primary,
+              html[lang="ar"] .MuiMenuItem-root,
+              html[lang="ar"] .MuiAccordion-root,
+              html[lang="ar"] .MuiDialogTitle-root,
+              html[lang="ar"] .MuiDialogContent-root,
+              html[lang="ar"] [class*="makeStyles"],
+              html[lang="ar"] [class*="MuiTypography"],
+              html[lang="ar"] [class*="title"],
+              html[lang="ar"] [class*="text"] {
+                font-family: 'Tajawal', sans-serif !important;
+              }
+            `}} />
           )}
         </head>
         <MetaHead />

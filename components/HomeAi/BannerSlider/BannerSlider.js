@@ -6,6 +6,7 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 import { useSpring, animated } from 'react-spring';
 import link from 'public/text/link';
 import imgAPI from 'public/images/imgAPI';
@@ -31,6 +32,11 @@ function BannerSlider() {
   const { classes: gradient } = useTextGradient();
 
   const { t } = useTranslation('common');
+  const router = useRouter();
+  const isArabic = router.query.locale === 'ar';
+  
+  // Use RTL image for Arabic, normal image for other languages
+  const backgroundImage = isArabic ? '/images/ai/2_rtl.png' : imgAPI.ai[0];
 
   return (
     <div className={classes.bannerWrap} style={{ margin: 0, padding: 0, top: 0 }}>
@@ -39,16 +45,17 @@ function BannerSlider() {
           <div className={classes.inner}>
             <div className={cx(classes.img, classes.backgroundBanner)} style={{ margin: 0, padding: 0, top: 0, overflow: 'hidden' }}>
               <img 
-                src={imgAPI.ai[0]} 
+                src={backgroundImage} 
                 alt="background" 
                 style={{ 
                   margin: 0, 
                   padding: 0, 
                   display: 'block',
-                  width: '110%',
-                  height: '110%',
+                  width: isArabic ? '100%' : '110%',
+                  height: isArabic ? '100%' : '110%',
                   objectFit: 'cover',
-                  animation: 'heroFloat 20s ease-in-out infinite',
+                  objectPosition: isArabic ? 'center' : 'center',
+                  animation: isArabic ? 'none' : 'heroFloat 20s ease-in-out infinite',
                   willChange: 'transform'
                 }} 
               />
@@ -78,8 +85,8 @@ function BannerSlider() {
                         >
                           {t('btn_get')}
                         </Button>
-                        <Button component={LocaleLink} size="large" color="secondary" variant="outlined" to={link.about} className={classes.button}>
-                          {t('btn_detail')}
+                        <Button component={LocaleLink} size="large" color="secondary" variant="outlined" to="/outline" className={classes.button}>
+                          OUTLINE
                         </Button>
                       </div>
                     </div>

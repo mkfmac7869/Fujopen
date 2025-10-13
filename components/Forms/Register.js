@@ -97,6 +97,28 @@ function Register() {
       };
       
       await signup(values.email, values.password, userData);
+      
+      // Send welcome email via API
+      try {
+        const emailResponse = await fetch('/api/send-welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: values.email,
+            name: values.fullName,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Welcome email sent to:', values.email);
+        } else {
+          console.error('❌ Failed to send welcome email');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending welcome email:', emailError);
+        // Don't block registration if email fails
+      }
+      
       router.push('/');
     } catch (error) {
       console.error('Registration error:', error);
@@ -187,6 +209,7 @@ function Register() {
                 <option value="athlete">ATHLETE</option>
                 <option value="coach">COACH</option>
                 <option value="official">OFFICIAL</option>
+                <option value="referee">REFEREE</option>
                 <option value="fan">FAN</option>
                 <option value="trainer">TRAINER</option>
                 <option value="physiotherapist">physiotherapist</option>

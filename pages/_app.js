@@ -102,6 +102,37 @@ function MyApp(props) {
     const themeDir = curLang === 'ar' ? 'rtl' : 'ltr';
     document.dir = themeDir;
     document.documentElement.setAttribute('lang', curLang);
+    
+    // FORCE Tajawal font for Arabic - ABSOLUTE OVERRIDE
+    if (curLang === 'ar') {
+      document.body.style.fontFamily = 'Tajawal, sans-serif';
+      document.documentElement.style.fontFamily = 'Tajawal, sans-serif';
+      
+      // Add global style override
+      const styleId = 'tajawal-force';
+      let styleTag = document.getElementById(styleId);
+      if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = styleId;
+        document.head.appendChild(styleTag);
+      }
+      styleTag.innerHTML = `
+        * {
+          font-family: 'Tajawal', sans-serif !important;
+        }
+        body, html, #__next, #__next > * {
+          font-family: 'Tajawal', sans-serif !important;
+        }
+        h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+          font-family: 'Tajawal', sans-serif !important;
+        }
+        .MuiTypography-root, .MuiButton-root, .MuiTab-root, .MuiChip-label, 
+        .MuiInputBase-root, .MuiMenuItem-root, .MuiListItemText-primary,
+        [class*="Mui"], [class*="makeStyles"], [class*="title"], [class*="text"] {
+          font-family: 'Tajawal', sans-serif !important;
+        }
+      `;
+    }
 
     // Set color mode and direction
     if (themeType === 'light' || curLang === 'ar') {

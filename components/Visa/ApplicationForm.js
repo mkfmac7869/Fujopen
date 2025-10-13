@@ -1009,6 +1009,7 @@ Use null for missing fields. Dates must be YYYY-MM-DD. Gender: male or female on
                         <option value="athlete">ATHLETE</option>
                         <option value="coach">COACH</option>
                         <option value="official">OFFICIAL</option>
+                        <option value="referee">REFEREE</option>
                         <option value="fan">FAN</option>
                         <option value="trainer">TRAINER</option>
                         <option value="physiotherapist">physiotherapist</option>

@@ -17,7 +17,6 @@ import Feature from 'components/HomeAi/Feature';
 import Step from 'components/HomeAi/Step';
 import NewsEvent from 'components/HomeAi/NewsEvent';
 import Faq from 'components/HomeAi/Faq';
-import CallAction from 'components/HomeAi/CallAction';
 import FooterDeco from 'components/Footer/Decoration/Liquid';
 import Corner from 'components/Utils/Corner';
 import Notification from 'components/Utils/Notification';
@@ -56,9 +55,6 @@ function Landing() {
       </section>
       <section id="blog" className={classes.spaceTopShort}>
         <NewsEvent />
-      </section>
-      <section id="call-action" className={cx(classes.spaceTop, classes.spaceBottom)}>
-        <CallAction />
       </section>
       {/* <Hidden mdDown>
         <Corner menuList={singleMenu.ai} />

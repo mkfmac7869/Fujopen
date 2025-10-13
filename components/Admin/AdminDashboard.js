@@ -25,6 +25,7 @@ import AddBusinessIcon from '@mui/icons-material/AddBusiness';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -115,6 +116,8 @@ function AdminDashboard() {
     totalHotels: 0,
     totalBookings: 0,
     pendingBookings: 0,
+    totalTransportation: 0,
+    pendingTransportation: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -122,25 +125,50 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        console.log('Fetching admin stats...');
+        
         // Fetch users count
+        console.log('Fetching users...');
         const usersSnapshot = await getDocs(collection(db, 'users'));
+        console.log('Users count:', usersSnapshot.size);
         
         // Fetch visa applications
+        console.log('Fetching visa applications...');
         const visasSnapshot = await getDocs(collection(db, 'visaApplications'));
+        console.log('Visa applications count:', visasSnapshot.size);
+        
         const pendingVisasQuery = query(collection(db, 'visaApplications'), where('status', 'in', ['reviewing', 'submitted', 'processing']));
         const pendingVisasSnapshot = await getDocs(pendingVisasQuery);
+        console.log('Pending visas count:', pendingVisasSnapshot.size);
+        
         const approvedVisasQuery = query(collection(db, 'visaApplications'), where('status', '==', 'approved'));
         const approvedVisasSnapshot = await getDocs(approvedVisasQuery);
+        console.log('Approved visas count:', approvedVisasSnapshot.size);
         
         // Fetch hotel bookings
+        console.log('Fetching hotel bookings...');
         const bookingsSnapshot = await getDocs(collection(db, 'hotelBookings'));
+        console.log('Hotel bookings count:', bookingsSnapshot.size);
+        
         const pendingBookingsQuery = query(collection(db, 'hotelBookings'), where('status', '==', 'pending'));
         const pendingBookingsSnapshot = await getDocs(pendingBookingsQuery);
+        console.log('Pending bookings count:', pendingBookingsSnapshot.size);
         
         // Fetch hotels
+        console.log('Fetching hotels...');
         const hotelsSnapshot = await getDocs(collection(db, 'hotels'));
+        console.log('Hotels count:', hotelsSnapshot.size);
 
-        setStats({
+        // Fetch transportation requests
+        console.log('Fetching transportation requests...');
+        const transportationSnapshot = await getDocs(collection(db, 'transportationRequests'));
+        console.log('Transportation requests count:', transportationSnapshot.size);
+        
+        const pendingTransportationQuery = query(collection(db, 'transportationRequests'), where('status', '==', 'pending'));
+        const pendingTransportationSnapshot = await getDocs(pendingTransportationQuery);
+        console.log('Pending transportation count:', pendingTransportationSnapshot.size);
+
+        const newStats = {
           totalUsers: usersSnapshot.size,
           totalVisaApplications: visasSnapshot.size,
           pendingVisas: pendingVisasSnapshot.size,
@@ -148,9 +176,15 @@ function AdminDashboard() {
           totalHotels: hotelsSnapshot.size,
           totalBookings: bookingsSnapshot.size,
           pendingBookings: pendingBookingsSnapshot.size,
-        });
+          totalTransportation: transportationSnapshot.size,
+          pendingTransportation: pendingTransportationSnapshot.size,
+        };
+        
+        console.log('Final stats:', newStats);
+        setStats(newStats);
       } catch (error) {
         console.error('Error fetching stats:', error);
+        console.error('Error details:', error.message, error.code);
       } finally {
         setLoading(false);
       }
@@ -183,6 +217,14 @@ function AdminDashboard() {
       path: '/admin/booking-management',
       color: theme.palette.success.main,
       stats: `${stats.pendingBookings} Pending`,
+    },
+    {
+      title: 'Transportation Management',
+      description: 'Manage airport transportation requests, schedules, and logistics',
+      icon: <DirectionsBusIcon sx={{ fontSize: 64 }} />,
+      path: '/admin/transportation-management',
+      color: theme.palette.warning.main,
+      stats: `${stats.pendingTransportation} Pending`,
     },
     {
       title: 'User Management',

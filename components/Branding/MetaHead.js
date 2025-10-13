@@ -21,7 +21,7 @@ const MetaComponent = () => (
     <meta name="theme-color" content={theme.cyber.palette.primary.main} />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap"
     />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" />

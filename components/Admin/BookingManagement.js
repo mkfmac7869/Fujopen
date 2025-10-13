@@ -226,7 +226,40 @@ function BookingManagement() {
 
       await updateDoc(doc(db, 'hotelBookings', selectedBooking.id), updateData);
 
-      setSnackbar({ open: true, message: 'Booking status updated successfully!', severity: 'success' });
+      // Send status update email via API
+      const bookingData = selectedBooking.individualBookings && selectedBooking.individualBookings.length > 0
+        ? {
+            hotelName: `${selectedBooking.individualBookings.length} Hotels`,
+            location: 'Multiple Locations',
+          }
+        : {
+            hotelName: selectedBooking.hotelName,
+            location: selectedBooking.location,
+          };
+      
+      try {
+        const emailResponse = await fetch('/api/send-hotel-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'status',
+            email: selectedBooking.userEmail,
+            name: selectedBooking.userName,
+            status: newStatus,
+            bookingData: bookingData,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Hotel status update email sent to:', selectedBooking.userEmail);
+        } else {
+          console.error('❌ Failed to send hotel status email');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending hotel status email:', emailError);
+      }
+
+      setSnackbar({ open: true, message: 'Booking status updated successfully! Email sent to guest.', severity: 'success' });
       setEditDialog(false);
       setConfirmationNumber('');
       setConfirmationNumbers({});

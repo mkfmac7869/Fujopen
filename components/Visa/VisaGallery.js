@@ -410,6 +410,28 @@ function VisaGallery() {
 
       await addDoc(collection(db, 'visaApplications'), newApplication);
       
+      // Send visa application confirmation email via API
+      try {
+        const emailResponse = await fetch('/api/send-visa-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'application',
+            email: user.email,
+            name: formData.fullNameEnglish || user.displayName,
+            applicationData: newApplication,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Visa application email sent to:', user.email);
+        } else {
+          console.error('❌ Failed to send visa application email');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending visa application email:', emailError);
+      }
+      
       // Refresh applications list
       fetchApplications();
       setShowApplicationForm(false);

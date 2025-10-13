@@ -208,7 +208,32 @@ function VisaManagement() {
       await updateDoc(doc(db, 'visaApplications', selectedApplication.id), updateData);
       console.log('Firestore updated successfully');
 
-      setSnackbar({ open: true, message: 'Status updated successfully!', severity: 'success' });
+      // Send status update email via API
+      try {
+        const emailType = (newStatus === 'approved' && updateData.approvedVisaFile) ? 'approved' : 'status';
+        const emailResponse = await fetch('/api/send-visa-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: emailType,
+            email: selectedApplication.userEmail,
+            name: selectedApplication.fullNameEnglish,
+            status: newStatus,
+            visaUrl: updateData.approvedVisaFile,
+            applicationData: selectedApplication,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Visa email sent to:', selectedApplication.userEmail);
+        } else {
+          console.error('❌ Failed to send visa email');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending visa email:', emailError);
+      }
+
+      setSnackbar({ open: true, message: 'Status updated successfully! Email sent to applicant.', severity: 'success' });
       setEditDialog(false);
       setVisaFile(null);
       setAdditionalNotes('');
@@ -414,6 +439,7 @@ function VisaManagement() {
         <Tabs value={viewMode} onChange={(e, val) => setViewMode(val)}>
           <Tab label="All Applicants" value="applicants" />
           <Tab label="By Teams" value="teams" />
+          <Tab label="Referees" value="referees" />
           <Tab label="Folders" value="folders" />
         </Tabs>
       </Box>
@@ -670,6 +696,247 @@ function VisaManagement() {
             </Grid>
           )}
         </Box>
+      )}
+
+      {viewMode === 'referees' && (
+        <>
+          {/* Referees View */}
+          <Box>
+            {/* Search Bar and Export for Referees */}
+            <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                fullWidth
+                placeholder="Search by name, passport, or team..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ mr: 1, opacity: 0.6 }} />,
+                }}
+              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={fetchApplications}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<DownloadIcon />}
+                  onClick={() => {
+                    const refereeApps = applications.filter(app => 
+                      app.position?.toLowerCase() === 'referee'
+                    );
+                    const exportData = refereeApps.map(app => ({
+                      'Full Name (English)': app.fullNameEnglish,
+                      'Full Name (Arabic)': app.fullNameArabic || '',
+                      'Passport Number': app.passportNumber,
+                      'Date of Birth': app.dateOfBirth || '',
+                      'Passport Expiry Date': app.expiryDate || '',
+                      'Place of Birth': app.placeOfBirth || '',
+                      'Nationality': app.nationality || '',
+                      'Gender': app.gender || '',
+                      'Position': app.position || '',
+                      'Team/Club Name': app.teamName || '',
+                      'User Email': app.userEmail || '',
+                      'Status': app.status,
+                      'Submitted Date': new Date(app.submittedDate).toLocaleString(),
+                      'Last Updated': app.lastUpdated ? new Date(app.lastUpdated).toLocaleString() : '',
+                      'Updated By': app.updatedBy || '',
+                      'Visa Approved Date': app.visaApprovedDate ? new Date(app.visaApprovedDate).toLocaleString() : '',
+                      'Additional Notes': app.additionalNotes || '',
+                    }));
+                    
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Referees');
+                    XLSX.writeFile(wb, `Referees_${new Date().toISOString().split('T')[0]}.xlsx`);
+                  }}
+                >
+                  Export Referees
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Filter Status Tabs */}
+            <Box sx={{ mb: 3 }}>
+              <Tabs
+                value={filterStatus}
+                onChange={(e, val) => setFilterStatus(val)}
+              >
+                <Tab label="All" value="all" />
+                <Tab label="Pending" value="pending" />
+                <Tab label="Processing" value="processing" />
+                <Tab label="Reviewing" value="reviewing" />
+                <Tab label="Approved" value="approved" />
+                <Tab label="Rejected" value="rejected" />
+              </Tabs>
+            </Box>
+
+            {/* Total Count */}
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Total Referees: {applications.filter(app => 
+                app.position?.toLowerCase() === 'referee' &&
+                (filterStatus === 'all' || app.status === filterStatus) &&
+                (searchTerm === '' || 
+                  app.fullNameEnglish?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  app.passportNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  app.teamName?.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+              ).length}
+            </Typography>
+
+            {/* Referees Table */}
+            <TableContainer component={Paper} sx={{ 
+              background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#fff',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+            }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ 
+                    background: theme.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%)'
+                      : 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)'
+                  }}>
+                    <TableCell sx={{ fontWeight: 700 }}>Full Name</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Team/Club</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Position</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Submitted</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {applications
+                    .filter(app => 
+                      app.position?.toLowerCase() === 'referee' &&
+                      (filterStatus === 'all' || app.status === filterStatus) &&
+                      (searchTerm === '' || 
+                        app.fullNameEnglish?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        app.passportNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        app.teamName?.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                    )
+                    .map((app) => (
+                      <TableRow 
+                        key={app.id}
+                        hover
+                        sx={{
+                          '&:hover': {
+                            background: theme.palette.mode === 'dark' 
+                              ? 'rgba(99, 102, 241, 0.08)' 
+                              : 'rgba(99, 102, 241, 0.04)',
+                          },
+                        }}
+                      >
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Avatar
+                              src={app.photoFile}
+                              sx={{ 
+                                width: 50, 
+                                height: 50,
+                                border: '2px solid',
+                                borderColor: 'primary.main',
+                              }}
+                            />
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                {app.fullNameEnglish}
+                              </Typography>
+                              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                {app.passportNumber}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {app.teamLogo && (
+                              <Avatar
+                                src={app.teamLogo}
+                                sx={{ width: 30, height: 30 }}
+                              />
+                            )}
+                            <Typography variant="body2">{app.teamName || 'N/A'}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label="REFEREE" 
+                            size="small"
+                            sx={{
+                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                              color: '#fff',
+                              fontWeight: 600,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={app.status} 
+                            color={
+                              app.status === 'approved' ? 'success' :
+                              app.status === 'processing' ? 'primary' :
+                              app.status === 'reviewing' ? 'info' :
+                              app.status === 'rejected' ? 'error' :
+                              'warning'
+                            }
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(app.submittedDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => {
+                                setSelectedApplication(app);
+                                setDetailsDialog(true);
+                              }}
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={() => {
+                                setSelectedApplication(app);
+                                setNewStatus(app.status);
+                                setEditDialog(true);
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {applications.filter(app => 
+              app.position?.toLowerCase() === 'referee' &&
+              (filterStatus === 'all' || app.status === filterStatus) &&
+              (searchTerm === '' || 
+                app.fullNameEnglish?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                app.passportNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                app.teamName?.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+            ).length === 0 && (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography variant="h6" color="text.secondary">
+                  No referee applications found
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </>
       )}
 
       {viewMode === 'folders' && (

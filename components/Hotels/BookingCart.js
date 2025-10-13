@@ -126,7 +126,41 @@ function BookingCart() {
         }
       }
 
-      alert(`Successfully submitted booking group with ${cartItems.length} reservation(s)! Rooms have been reserved. Awaiting OC review.`);
+      // Send booking confirmation email via API
+      const bookingData = {
+        hotelName: cartItems.length > 1 ? `${cartItems.length} Hotels` : cartItems[0].hotelName,
+        location: cartItems.length > 1 ? 'Multiple Locations' : cartItems[0].location,
+        roomType: cartItems.length > 1 ? 'Multiple Rooms' : cartItems[0].roomType,
+        numberOfRooms: totalRooms,
+        checkIn: cartItems[0].checkIn,
+        checkOut: cartItems[0].checkOut,
+        totalPrice: totalPrice,
+        confirmationNumber: groupId,
+        roomingList: cartItems.length === 1 ? cartItems[0].roomingList : null,
+      };
+      
+      try {
+        const emailResponse = await fetch('/api/send-hotel-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'confirmation',
+            email: user.email,
+            name: cartItems[0].userName,
+            bookingData: bookingData,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Hotel booking confirmation email sent to:', user.email);
+        } else {
+          console.error('❌ Failed to send booking confirmation email');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending booking confirmation email:', emailError);
+      }
+
+      alert(`Successfully submitted booking group with ${cartItems.length} reservation(s)! Rooms have been reserved. Awaiting OC review. Confirmation email sent!`);
       clearCart();
     } catch (error) {
       console.error('Error confirming bookings:', error);

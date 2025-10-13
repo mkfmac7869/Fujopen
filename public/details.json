@@ -1,0 +1,151 @@
+{
+  "event_name": "13th Fujairah Open 2026",
+  "event_type": "WT G2 Event",
+  "dates": "01-05 February 2026",
+  "location": {
+    "city": "Fujairah",
+    "country": "United Arab Emirates"
+  },
+  "organizer": {
+    "name": "Fujairah Martial Arts Club",
+    "address": "17, Sheikh Maktoum Bin Rashid Al Maktoum Road, Fujairah, UAE",
+    "contacts": [
+      {"type": "email", "value": "fuj.open@gmail.com"},
+      {"type": "email", "value": "nabushawish@gmail.com"},
+      {"type": "phone", "value": "+971 55 6022230"}
+    ]
+  },
+  "sanctioned_by": {
+    "name": "World Taekwondo",
+    "address": "10th Floor, Booyoung Taepyung Building, 55, Sejong-daero, Jung-gu, Seoul, Republic of Korea, 04513"
+  },
+  "venue": {
+    "name": "Sheikh Zayed Sport City – Fujairah",
+    "address": "380/18, HH Sheikh Khalifa Bin Zayed Road, Fujairah"
+  },
+  "competition": {
+    "ranking": {"seniors": "G-2"},
+    "rules": "Competition Rules & Interpretation, in force as of June 2024.",
+    "system": "Single elimination tournament system. Best of 3 system.",
+    "seeding": {
+      "seniors": "All athletes will be seeded according to the January WT World Ranking (Published in January 2026) – this should be February Rank."
+    },
+    "contest_time": [
+      {"division": "Senior", "rounds": 3, "time_per_round": "2 minutes", "break": "1-minute"},
+      {"division": "Junior", "rounds": 3, "time_per_round": "1 minute 30 seconds", "break": "1-minute"},
+      {"division": "Cadet", "rounds": 3, "time_per_round": "1 minute 30 seconds", "break": "1-minute"},
+      {"division": "Children", "rounds": 3, "time_per_round": "1 minute 30 seconds", "break": "1-minute"}
+    ]
+  },
+  "eligibility": {
+    "athletes": {
+      "license": "Valid 2026 WT Global Athlete License",
+      "union": "Asian Taekwondo Union or World Taekwondo",
+      "certificate_requirements": {
+        "Seniors": "Kukkiwon Dan certificate",
+        "Juniors": "1st Poom and above",
+        "Cadets": "5th Kup and above"
+      },
+      "birth_years": {
+        "Seniors": "2009 or before",
+        "Juniors": "2009, 2010, 2011",
+        "Cadets": "2012, 2013, 2014",
+        "Children": "2015, 2016, 2017"
+      },
+      "note": "Athletes born in 2009 can compete as junior or senior; competing in both is not allowed."
+    },
+    "coaches": {
+      "minimum_age": 18,
+      "certificate": "WT Coach Certificate Level I or above",
+      "license": "Valid 2026 WT Global Official License",
+      "attire_finals": "Formal suit (tie, jacket, dress shirt, trousers) and sport shoes during Semi-Finals and Finals"
+    }
+  },
+  "medal_events": {
+    "Seniors": {
+      "Male": ["-54kg", "-58kg", "-63kg", "-68kg", "-74kg", "-80kg", "-87kg", "+87kg"],
+      "Female": ["-46kg", "-49kg", "-53kg", "-57kg", "-62kg", "-67kg", "-73kg", "+73kg"]
+    },
+    "Juniors": {
+      "Male": ["-45kg", "-48kg", "-51kg", "-55kg", "-59kg", "-63kg", "-68kg", "-73kg", "-78kg", "+78kg"],
+      "Female": ["-42kg", "-44kg", "-46kg", "-49kg", "-52kg", "-55kg", "-59kg", "-63kg", "-68kg", "+68kg"]
+    },
+    "Cadets": {
+      "Male": ["-33kg", "-37kg", "-41kg", "-45kg", "-49kg", "-53kg", "-57kg", "-61kg", "-65kg", "+65kg"],
+      "Female": ["-29kg", "-33kg", "-37kg", "-41kg", "-44kg", "-47kg", "-51kg", "-55kg", "-59kg", "+59kg"]
+    },
+    "Children": {
+      "Male": ["-27kg", "-30kg", "-33kg", "-36kg", "-40kg", "-44kg", "-48kg", "-52kg", "-57kg", "+57kg"],
+      "Female": ["-27kg", "-30kg", "-33kg", "-36kg", "-40kg", "-44kg", "-48kg", "-52kg", "-57kg", "+57kg"]
+    }
+  },
+  "sport_entries_and_fees": {
+    "entry_method": "WT GMS online registration system Simply Compete (https://worldtkd.simplycompete.com/)",
+    "registration_deadline": "15 January 2026, 23:59 U.A.E. Time",
+    "fees": [
+      {"description": "Online Athlete Registration", "amount": "$100", "notes": "Per registered individual athlete, paid online."},
+      {"description": "Onsite Athlete Registration (Cash)", "amount": "$150", "notes": "Per registered athlete, if made onsite."},
+      {"description": "Change of Medal Event (After deadline)", "amount": "$25 or 100 Dirhams", "notes": "For each weight category change made after deadline."},
+      {"description": "Onsite WT Global Licence Processing", "amount": "$50 extra", "notes": "For each WT Global Licence registration completed onsite."}
+    ]
+  },
+  "sport_equipment": {
+    "pss_system": "KPNP, with electronic headgear (provided by OC)",
+    "compulsory_equipment_by_contestant": ["Groin", "Forearm", "Shin guards", "Mouthguard (white or transparent)", "Gloves", "KPNP sensor socks"],
+    "compliance": "Only WT recognized products allowed.",
+    "sensor_socks_sales": "Available for sale at the Sport Hall"
+  },
+  "logistics": {
+    "random_weigh_in": {
+      "time": "Daily at 08:00 hrs",
+      "publication_time": "07:00 hrs on the competition day",
+      "publication_platforms": ["FMAC social media", "OVR Provider", "WT GMS"]
+    },
+    "head_of_team_meeting_and_draw": {
+      "timing": "One (1) day prior to the start of the competition",
+      "information_publication": "One (1) day before the start of competition on FMAC, OVR, and WT GMS platforms."
+    },
+    "accommodation_and_visa": {
+      "transportation_provided": "Airport-hotel-venue transportation provided ONLY for teams booking hotel via OC.",
+      "free_visa_criteria": [
+        "Registered on Simply Compete",
+        "Completed full payment for entry fee",
+        "Hotel booking made through the OC"
+      ],
+      "visa_submission_email": "Visa.fujairah@gmail.com"
+    }
+  },
+  "awards": [
+    {"place": "1st", "medal": "gold medal"},
+    {"place": "2nd", "medal": "silver medal"},
+    {"place": "3rd", "medal": "bronze medal", "note": "Awarded twice"}
+  ],
+  "detailed_schedule": [
+    {"date": "30-31 Jan 2026", "time": null, "activity": "Team Arrival", "location": null, "division": null},
+    {"date": "31 Jan 2026", "time": "9:00 - 21:00", "activity": "Team Registration", "location": "Concorde Hotel", "division": null},
+    {"date": "31 Jan 2026", "time": "11:00 - 13:00", "activity": "Final Registration", "location": "Concorde Hotel", "division": "Senior"},
+    {"date": "31 Jan 2026", "time": "14:00 - 18:00", "activity": "Final Registration", "location": "Concorde Hotel", "division": "Junior, Cadet, Children"},
+    {"date": "31 Jan 2026", "time": "14:00 - 16:00", "activity": "Weigh-in", "location": "Concorde Hotel", "division": "Seniors Male"},
+    {"date": "31 Jan 2026", "time": "18:00 - 19:00", "activity": "Technical Meeting", "location": "Double tree Hotel", "division": "Seniors Female"},
+    {"date": "31 Jan 2026", "time": "19:00 - 21:00", "activity": "Referee Meeting and Training", "location": "Double tree Hotel", "division": null},
+    {"date": "01 Feb 2026", "time": "8:00 - 8:30", "activity": "Random Weigh-in", "location": "Zayed Sport Venue", "division": "Seniors Female"},
+    {"date": "01 Feb 2026", "time": "9:00", "activity": "Competition", "location": "Zayed Sport Venue", "division": "Seniors female"},
+    {"date": "01 Feb 2026", "time": "10:00 - 12:00", "activity": "Weigh-in", "location": "Concord Hotel", "division": "Seniors Male"},
+    {"date": "01 Feb 2026", "time": "19:00 - 20:00", "activity": "Opening Ceremony", "location": "Zayed Sport Venue", "division": null},
+    {"date": "02 Feb 2026", "time": "8:00 - 8:30", "activity": "Random Weigh-in", "location": "Zayed Sport Venue", "division": "Seniors Male"},
+    {"date": "02 Feb 2026", "time": "9:00", "activity": "Competition", "location": "Zayed Sport Venue", "division": "Seniors Male"},
+    {"date": "02 Feb 2026", "time": "10:00 - 12:00", "activity": "Weigh-in", "location": "Concord Hotel", "division": "All Junior"},
+    {"date": "03 Feb 2026", "time": "8:00 - 8:30", "activity": "Random Weigh-in", "location": "Zayed Sport Venue", "division": "All Junior"},
+    {"date": "03 Feb 2026", "time": "9:00", "activity": "Competition", "location": "Zayed Sport Venue", "division": "All Junior"},
+    {"date": "03 Feb 2026", "time": "10:00 - 12:00", "activity": "Weigh-in", "location": "Concorde Hotel", "division": "All Cadet"},
+    {"date": "04 Feb 2026", "time": "8:00 - 8:30", "activity": "Random Weigh-in", "location": "Zayed Sport Venue", "division": "All Cadet"},
+    {"date": "04 Feb 2026", "time": "9:00", "activity": "Competition", "location": "Zayed Sport Venue", "division": "All Cadet"},
+    {"date": "04 Feb 2026", "time": "10:00 - 12:00", "activity": "Weigh-in", "location": "Concorde Hotel", "division": "All Children"},
+    {"date": "05 Feb 2026", "time": "9:00", "activity": "Competition", "location": "Zayed Sport Venue", "division": "All Children"},
+    {"date": "06 Feb 2026", "time": null, "activity": "Departure", "location": null, "division": null}
+  ],
+  "event_director": {
+    "name": "Nader Abu Shawish",
+    "phone": "0097155 602 2230"
+  }
+}

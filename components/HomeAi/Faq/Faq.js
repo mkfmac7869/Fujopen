@@ -14,26 +14,30 @@ import Parallax from '../Parallax/ParallaxRight';
 import Title from '../../Title';
 import useStyles from './faq-style';
 
-const faqData = [
+const faqData = (t) => [
   {
-    q: 'Pellentesque ac bibendum tortor?',
-    a: 'Vivamus sit amet interdum elit. Proin lacinia erat ac velit tempus auctor. '
+    q: t('ai-landing.faq_q1'),
+    a: t('ai-landing.faq_a1')
   },
   {
-    q: 'In mi nulla, fringilla vestibulum?',
-    a: 'Vivamus sit amet interdum elit. Proin lacinia erat ac velit tempus auctor. '
+    q: t('ai-landing.faq_q2'),
+    a: t('ai-landing.faq_a2')
   },
   {
-    q: 'Quisque lacinia purus ut libero?',
-    a: 'Vivamus sit amet interdum elit. Proin lacinia erat ac velit tempus auctor. '
+    q: t('ai-landing.faq_q3'),
+    a: t('ai-landing.faq_a3')
   },
   {
-    q: 'Quisque ut metus sit amet augue?',
-    a: 'Vivamus sit amet interdum elit. Proin lacinia erat ac velit tempus auctor. '
+    q: t('ai-landing.faq_q4'),
+    a: t('ai-landing.faq_a4')
   },
   {
-    q: 'Pellentesque ac bibendum tortor?',
-    a: 'Vivamus sit amet interdum elit. Proin lacinia erat ac velit tempus auctor. '
+    q: t('ai-landing.faq_q5'),
+    a: t('ai-landing.faq_a5')
+  },
+  {
+    q: t('ai-landing.faq_q6'),
+    a: t('ai-landing.faq_a6')
   },
 ];
 
@@ -73,7 +77,7 @@ function Faq() {
           </Grid>
           <Grid item md={7}>
             <div className={classes.accordion}>
-              {faqData.map((item, index) => (
+              {faqData(t).map((item, index) => (
                 <div className={classes.item} key={index.toString()}>
                   <Accordion
                     classes={{

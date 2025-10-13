@@ -1,0 +1,1294 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Card,
+  CardContent,
+  Chip,
+  Grid,
+  TextField,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Tabs,
+  Tab,
+  CircularProgress,
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Divider,
+  Alert,
+  Snackbar,
+} from '@mui/material';
+import { makeStyles } from 'tss-react/mui';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import * as XLSX from 'xlsx';
+import DownloadIcon from '@mui/icons-material/Download';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import FlightLandIcon from '@mui/icons-material/FlightLand';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+
+const localizer = momentLocalizer(moment);
+
+const useStyles = makeStyles({ uniqId: 'transportation-management' })((theme) => ({
+  root: {
+    paddingTop: theme.spacing(5),
+    paddingBottom: theme.spacing(10),
+  },
+  tableCard: {
+    background: theme.palette.mode === 'dark'
+      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)'
+      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+    backdropFilter: 'blur(40px)',
+    WebkitBackdropFilter: 'blur(40px)',
+    borderRadius: theme.spacing(3),
+    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.9)'}`,
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+  },
+  filterSection: {
+    marginBottom: theme.spacing(3),
+    padding: theme.spacing(3),
+    background: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.05)'
+      : 'rgba(255, 255, 255, 0.8)',
+    borderRadius: theme.spacing(2),
+  },
+  calendarWrapper: {
+    '& .rbc-calendar': {
+      color: theme.palette.text.primary,
+    },
+    '& .rbc-header': {
+      padding: '12px 3px',
+      fontWeight: 700,
+      fontSize: '0.95rem',
+      color: theme.palette.mode === 'dark' ? '#fff' : '#1e293b',
+      background: theme.palette.mode === 'dark' 
+        ? 'linear-gradient(135deg, #1e3a8a, #3b82f6)'
+        : 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+      borderBottom: '2px solid rgba(255, 255, 255, 0.2)',
+    },
+    '& .rbc-month-view': {
+      border: `1px solid ${theme.palette.divider}`,
+      borderRadius: theme.spacing(2),
+      overflow: 'hidden',
+    },
+    '& .rbc-day-bg': {
+      border: `1px solid ${theme.palette.divider}`,
+    },
+    '& .rbc-off-range-bg': {
+      background: theme.palette.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.02)'
+        : 'rgba(0, 0, 0, 0.02)',
+    },
+    '& .rbc-today': {
+      background: theme.palette.mode === 'dark'
+        ? 'rgba(99, 102, 241, 0.15)'
+        : 'rgba(99, 102, 241, 0.1)',
+    },
+    '& .rbc-date-cell': {
+      padding: '8px',
+      fontSize: '0.9rem',
+      fontWeight: 600,
+      color: theme.palette.text.primary,
+    },
+    '& .rbc-event': {
+      padding: '4px 8px',
+      borderRadius: '6px',
+      fontSize: '0.85rem',
+      fontWeight: 600,
+      cursor: 'pointer',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        transform: 'scale(1.05)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+      }
+    },
+    '& .rbc-event-label': {
+      display: 'none',
+    },
+    '& .rbc-event-content': {
+      fontSize: '0.85rem',
+      fontWeight: 600,
+      whiteSpace: 'normal',
+      overflow: 'visible',
+    },
+    '& .rbc-month-row': {
+      minHeight: '100px',
+    },
+    '& .rbc-toolbar': {
+      padding: '16px',
+      marginBottom: '16px',
+      background: theme.palette.mode === 'dark'
+        ? 'rgba(255, 255, 255, 0.05)'
+        : 'rgba(255, 255, 255, 0.8)',
+      borderRadius: theme.spacing(2),
+      flexWrap: 'wrap',
+      gap: '8px',
+    },
+    '& .rbc-toolbar button': {
+      color: theme.palette.text.primary,
+      border: `1px solid ${theme.palette.divider}`,
+      padding: '8px 16px',
+      borderRadius: '8px',
+      fontWeight: 600,
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        background: theme.palette.mode === 'dark'
+          ? 'rgba(99, 102, 241, 0.2)'
+          : 'rgba(99, 102, 241, 0.1)',
+        borderColor: '#6366f1',
+      },
+      '&.rbc-active': {
+        background: '#6366f1',
+        color: 'white',
+        borderColor: '#6366f1',
+      }
+    },
+    '& .rbc-toolbar-label': {
+      fontSize: '1.25rem',
+      fontWeight: 700,
+      color: theme.palette.text.primary,
+    }
+  },
+}));
+
+const statusConfig = {
+  pending: { label: 'Pending Approval', color: 'warning' },
+  approved: { label: 'Approved', color: 'success' },
+  cancelled: { label: 'Cancelled', color: 'error' },
+  completed: { label: 'Completed', color: 'info' },
+};
+
+const airports = [
+  'Dubai International Airport (DXB)',
+  'Sharjah International Airport (SHJ)',
+  'Ras Al Khaimah International Airport (RKT)'
+];
+
+function TransportationManagement() {
+  const { classes } = useStyles();
+  const theme = useTheme();
+
+  const [requests, setRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'teams', 'calendar'
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    locations: [],
+    dateFrom: '',
+    dateTo: '',
+    timeFrom: '',
+    timeTo: '',
+    status: 'all',
+  });
+
+  // Dialog states
+  const [detailsDialog, setDetailsDialog] = useState(false);
+  const [editDialog, setEditDialog] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters, requests]);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      const querySnapshot = await getDocs(collection(db, 'transportationRequests'));
+      const requestsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      requestsData.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
+      setRequests(requestsData);
+      setFilteredRequests(requestsData);
+    } catch (error) {
+      console.error('Error fetching transportation requests:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...requests];
+
+    // Location filter
+    if (filters.locations.length > 0) {
+      filtered = filtered.filter(req => 
+        filters.locations.includes(req.arrival.airport) || 
+        filters.locations.includes(req.departure.airport)
+      );
+    }
+
+    // Date range filter
+    if (filters.dateFrom) {
+      filtered = filtered.filter(req => 
+        new Date(req.arrival.date) >= new Date(filters.dateFrom) ||
+        new Date(req.departure.date) >= new Date(filters.dateFrom)
+      );
+    }
+    if (filters.dateTo) {
+      filtered = filtered.filter(req => 
+        new Date(req.arrival.date) <= new Date(filters.dateTo) ||
+        new Date(req.departure.date) <= new Date(filters.dateTo)
+      );
+    }
+
+    // Time range filter
+    if (filters.timeFrom) {
+      filtered = filtered.filter(req => 
+        req.arrival.time >= filters.timeFrom || req.departure.time >= filters.timeFrom
+      );
+    }
+    if (filters.timeTo) {
+      filtered = filtered.filter(req => 
+        req.arrival.time <= filters.timeTo || req.departure.time <= filters.timeTo
+      );
+    }
+
+    // Status filter
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(req => req.status === filters.status);
+    }
+
+    setFilteredRequests(filtered);
+  };
+
+  const handleLocationToggle = (airport) => {
+    setFilters(prev => ({
+      ...prev,
+      locations: prev.locations.includes(airport)
+        ? prev.locations.filter(loc => loc !== airport)
+        : [...prev.locations, airport]
+    }));
+  };
+
+  const handleExportExcel = () => {
+    const exportData = filteredRequests.map(req => ({
+      'Request ID': req.id,
+      'User Email': req.userEmail,
+      'Team Name': req.teamName || 'N/A',
+      'Phone Number': req.phoneNumber || 'N/A',
+      'Status': statusConfig[req.status]?.label || req.status,
+      'Arrival Flight': req.arrival.flightNumber,
+      'Arrival Airport': req.arrival.airport,
+      'Arrival Terminal': req.arrival.terminal || 'N/A',
+      'Arrival Date': new Date(req.arrival.date).toLocaleDateString(),
+      'Arrival Time': req.arrival.time,
+      'Arrival Team Members': req.arrival.teamMembers,
+      'Departure Flight': req.departure.flightNumber,
+      'Departure Airport': req.departure.airport,
+      'Departure Terminal': req.departure.terminal || 'N/A',
+      'Departure Date': new Date(req.departure.date).toLocaleDateString(),
+      'Departure Time': req.departure.time,
+      'Departure Team Members': req.departure.teamMembers,
+      'Submitted': new Date(req.submittedDate).toLocaleString(),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transportation Requests');
+    
+    const maxWidth = 30;
+    const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
+    ws['!cols'] = wscols;
+    
+    XLSX.writeFile(wb, `Transportation_Requests_${new Date().toLocaleDateString()}.xlsx`);
+  };
+
+  // Handle view details
+  const handleViewDetails = (request) => {
+    setSelectedRequest(request);
+    setDetailsDialog(true);
+  };
+
+  // Handle calendar event click
+  const handleSelectEvent = (event) => {
+    if (event.resource && event.resource.request) {
+      setSelectedRequest(event.resource.request);
+      setDetailsDialog(true);
+    }
+  };
+
+  // Handle edit status
+  const handleEditStatus = (request) => {
+    setSelectedRequest(request);
+    setNewStatus(request.status);
+    setEditDialog(true);
+  };
+
+  // Update status in Firebase
+  const handleUpdateStatus = async () => {
+    if (!selectedRequest || !newStatus) return;
+
+    try {
+      setUpdating(true);
+      const requestRef = doc(db, 'transportationRequests', selectedRequest.id);
+      await updateDoc(requestRef, {
+        status: newStatus,
+        lastUpdated: new Date().toISOString(),
+      });
+
+      setSnackbar({
+        open: true,
+        message: 'Status updated successfully!',
+        severity: 'success',
+      });
+
+      setEditDialog(false);
+      fetchRequests(); // Refresh data
+    } catch (error) {
+      console.error('Error updating status:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to update status. Please try again.',
+        severity: 'error',
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Group by team
+  const groupByTeam = () => {
+    const teams = {};
+    filteredRequests.forEach(req => {
+      const email = req.userEmail || 'Unknown';
+      if (!teams[email]) {
+        teams[email] = {
+          email: email,
+          teamName: req.teamName || 'Unknown Team',
+          requests: [],
+          total: 0,
+          pending: 0,
+          approved: 0,
+        };
+      }
+      teams[email].requests.push(req);
+      teams[email].total++;
+      if (req.status === 'approved') teams[email].approved++;
+      else if (req.status === 'pending') teams[email].pending++;
+    });
+    return Object.values(teams);
+  };
+
+  // Calendar events
+  const getCalendarEvents = () => {
+    const events = [];
+    filteredRequests.forEach(req => {
+      try {
+        // Arrival event
+        const arrivalDate = new Date(`${req.arrival.date}T${req.arrival.time}`);
+        if (!isNaN(arrivalDate.getTime())) {
+          events.push({
+            title: `✈️ ARRIVAL: ${req.arrival.flightNumber} (${req.arrival.teamMembers} pax) - ${req.teamName || req.userEmail}`,
+            start: arrivalDate,
+            end: new Date(arrivalDate.getTime() + 60 * 60 * 1000), // 1 hour duration
+            resource: { type: 'arrival', request: req }
+          });
+        }
+        
+        // Departure event
+        const departureDate = new Date(`${req.departure.date}T${req.departure.time}`);
+        if (!isNaN(departureDate.getTime())) {
+          events.push({
+            title: `🛫 DEPARTURE: ${req.departure.flightNumber} (${req.departure.teamMembers} pax) - ${req.teamName || req.userEmail}`,
+            start: departureDate,
+            end: new Date(departureDate.getTime() + 60 * 60 * 1000), // 1 hour duration
+            resource: { type: 'departure', request: req }
+          });
+        }
+      } catch (error) {
+        console.error('Error creating calendar event:', error);
+      }
+    });
+    return events;
+  };
+
+  const teamData = groupByTeam();
+
+  return (
+    <Container className={classes.root} maxWidth="xl">
+      <Typography variant="h3" sx={{ fontWeight: 800, mb: 4, mt: 8 }}>
+        Transportation Management
+      </Typography>
+
+      {/* View Mode Tabs */}
+      <Box sx={{ mb: 3 }}>
+        <Tabs value={viewMode} onChange={(e, val) => setViewMode(val)}>
+          <Tab label="All Applications" value="all" />
+          <Tab label="By Team" value="teams" />
+          <Tab label="Referees" value="referees" />
+          <Tab label="Calendar View" value="calendar" />
+        </Tabs>
+      </Box>
+
+      {/* Filters Section */}
+      <Card className={classes.filterSection} elevation={3}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <FilterListIcon sx={{ mr: 1 }} />
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Filters</Typography>
+        </Box>
+        
+        <Grid container spacing={2}>
+          {/* Location Checkboxes */}
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Airports</Typography>
+            <FormGroup>
+              {airports.map(airport => (
+                <FormControlLabel
+                  key={airport}
+                  control={
+                    <Checkbox
+                      checked={filters.locations.includes(airport)}
+                      onChange={() => handleLocationToggle(airport)}
+                    />
+                  }
+                  label={airport}
+                />
+              ))}
+            </FormGroup>
+          </Grid>
+
+          {/* Date Range */}
+          <Grid item xs={12} md={3}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Date Range</Typography>
+            <TextField
+              fullWidth
+              label="From Date"
+              type="date"
+              value={filters.dateFrom}
+              onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+              size="small"
+            />
+            <TextField
+              fullWidth
+              label="To Date"
+              type="date"
+              value={filters.dateTo}
+              onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+            />
+          </Grid>
+
+          {/* Time Range */}
+          <Grid item xs={12} md={3}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Time Range</Typography>
+            <TextField
+              fullWidth
+              label="From Time"
+              type="time"
+              value={filters.timeFrom}
+              onChange={(e) => setFilters(prev => ({ ...prev, timeFrom: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+              size="small"
+            />
+            <TextField
+              fullWidth
+              label="To Time"
+              type="time"
+              value={filters.timeTo}
+              onChange={(e) => setFilters(prev => ({ ...prev, timeTo: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+            />
+          </Grid>
+
+          {/* Status Filter */}
+          <Grid item xs={12} md={2}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Status</Typography>
+            <FormControl fullWidth size="small">
+              <Select
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              >
+                <MenuItem value="all">All Statuses</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="approved">Approved</MenuItem>
+                <MenuItem value="cancelled">Cancelled</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Box sx={{ mt: 2 }}>
+              <Chip 
+                label={`Total: ${filteredRequests.length}`} 
+                color="primary" 
+                size="small"
+                sx={{ width: '100%', mb: 1 }}
+              />
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={fetchRequests}
+                disabled={loading}
+              >
+                Refresh
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Export Button */}
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={handleExportExcel}
+            disabled={filteredRequests.length === 0}
+            sx={{ background: '#10b981', '&:hover': { background: '#059669' } }}
+          >
+            Export to Excel
+          </Button>
+        </Box>
+      </Card>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+          <CircularProgress size={60} />
+        </Box>
+      ) : (
+        <>
+          {/* All Applications View */}
+          {viewMode === 'all' && (
+            <TableContainer component={Paper} className={classes.tableCard} sx={{ mt: 3 }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)' }}>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Team/Club Name</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Arrival</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Departure</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Team Size</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Submitted</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 700 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredRequests.map((request) => (
+                    <TableRow key={request.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {request.teamName || 'N/A'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                          {request.userEmail}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                          <FlightLandIcon fontSize="small" color="success" />
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {request.arrival.flightNumber}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" display="block">
+                          {request.arrival.airport}
+                        </Typography>
+                        <Typography variant="caption" display="block">
+                          {new Date(request.arrival.date).toLocaleDateString()} {request.arrival.time}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                          <FlightTakeoffIcon fontSize="small" color="primary" />
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {request.departure.flightNumber}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" display="block">
+                          {request.departure.airport}
+                        </Typography>
+                        <Typography variant="caption" display="block">
+                          {new Date(request.departure.date).toLocaleDateString()} {request.departure.time}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {request.arrival.teamMembers} members
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={statusConfig[request.status]?.label || request.status}
+                          color={statusConfig[request.status]?.color || 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {new Date(request.submittedDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleViewDetails(request)}
+                            title="View Details"
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            color="secondary"
+                            onClick={() => handleEditStatus(request)}
+                            title="Update Status"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {/* By Team View */}
+          {viewMode === 'teams' && (
+            <Grid container spacing={3} sx={{ mt: 2 }}>
+              {teamData.map((team, index) => (
+                <Grid item xs={12} key={index}>
+                  <Card className={classes.tableCard}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Box>
+                          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                            {team.teamName || team.email}
+                          </Typography>
+                          <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                            {team.email}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          <Chip label={`${team.total} Total`} size="small" color="primary" />
+                          <Chip label={`${team.approved} Approved`} size="small" color="success" />
+                          <Chip label={`${team.pending} Pending`} size="small" color="warning" />
+                        </Box>
+                      </Box>
+                      
+                      <TableContainer sx={{ mt: 2 }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ background: 'rgba(99, 102, 241, 0.1)' }}>
+                              <TableCell sx={{ fontWeight: 700 }}>Arrival</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>Departure</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>Team Size</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {team.requests.map((request) => (
+                              <TableRow key={request.id} hover>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <FlightLandIcon fontSize="small" color="success" />
+                                    <Box>
+                                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        {request.arrival.flightNumber}
+                                      </Typography>
+                                      <Typography variant="caption" display="block">
+                                        {new Date(request.arrival.date).toLocaleDateString()} {request.arrival.time}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <FlightTakeoffIcon fontSize="small" color="primary" />
+                                    <Box>
+                                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        {request.departure.flightNumber}
+                                      </Typography>
+                                      <Typography variant="caption" display="block">
+                                        {new Date(request.departure.date).toLocaleDateString()} {request.departure.time}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  {request.arrival.teamMembers} members
+                                </TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={statusConfig[request.status]?.label || request.status}
+                                    color={statusConfig[request.status]?.color || 'default'}
+                                    size="small"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => handleViewDetails(request)}
+                                      title="View Details"
+                                    >
+                                      <VisibilityIcon />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      color="secondary"
+                                      onClick={() => handleEditStatus(request)}
+                                      title="Update Status"
+                                    >
+                                      <EditIcon />
+                                    </IconButton>
+                                  </Box>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* Referees View */}
+          {viewMode === 'referees' && (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Total Referees: {requests.filter(req => req.position?.toLowerCase() === 'referee').length}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<RefreshIcon />}
+                    onClick={fetchRequests}
+                  >
+                    Refresh
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<DownloadIcon />}
+                    onClick={() => {
+                      const refereeRequests = requests.filter(req => req.position?.toLowerCase() === 'referee');
+                      const exportData = refereeRequests.map(req => ({
+                        'Full Name': req.fullName || req.teamName || 'N/A',
+                        'Position': req.position || 'N/A',
+                        'User Email': req.userEmail || 'N/A',
+                        'Phone Number': req.phoneNumber || 'N/A',
+                        'Arrival Flight': req.arrival?.flightNumber || 'N/A',
+                        'Arrival Airport': req.arrival?.airport || 'N/A',
+                        'Arrival Terminal': req.arrival?.terminal || 'N/A',
+                        'Arrival Date': req.arrival?.date || 'N/A',
+                        'Arrival Time': req.arrival?.time || 'N/A',
+                        'Departure Flight': req.departure?.flightNumber || 'N/A',
+                        'Departure Airport': req.departure?.airport || 'N/A',
+                        'Departure Terminal': req.departure?.terminal || 'N/A',
+                        'Departure Date': req.departure?.date || 'N/A',
+                        'Departure Time': req.departure?.time || 'N/A',
+                        'Team Members': req.arrival?.teamMembers || 0,
+                        'Status': req.status || 'pending',
+                        'Submitted': req.submittedDate ? new Date(req.submittedDate).toLocaleString() : 'N/A',
+                      }));
+                      
+                      const ws = XLSX.utils.json_to_sheet(exportData);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, 'Referees');
+                      XLSX.writeFile(wb, `Referees_Transportation_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    }}
+                  >
+                    Export Referees
+                  </Button>
+                </Box>
+              </Box>
+
+              <TableContainer component={Paper} className={classes.tableCard} sx={{ mt: 3 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)' }}>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Full Name</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Position</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Arrival</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Departure</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Team Size</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Status</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Submitted</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 700 }}>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredRequests.filter(req => req.position?.toLowerCase() === 'referee').length > 0 ? (
+                      filteredRequests.filter(req => req.position?.toLowerCase() === 'referee').map((request) => (
+                        <TableRow 
+                          key={request.id}
+                          hover
+                          sx={{
+                            '&:hover': {
+                              background: theme.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.08)' : 'rgba(251, 191, 36, 0.04)',
+                            },
+                          }}
+                        >
+                          <TableCell>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {request.fullName || request.teamName || 'N/A'}
+                            </Typography>
+                            <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                              {request.userEmail}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label="REFEREE" 
+                              size="small"
+                              sx={{
+                                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                                color: '#fff',
+                                fontWeight: 600,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <FlightLandIcon sx={{ fontSize: 20, color: theme.palette.success.main }} />
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {request.arrival?.flightNumber}
+                                </Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                  {request.arrival?.airport} • {request.arrival?.date}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <FlightTakeoffIcon sx={{ fontSize: 20, color: theme.palette.info.main }} />
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {request.departure?.flightNumber}
+                                </Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                  {request.departure?.airport} • {request.departure?.date}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={`${request.arrival?.teamMembers || 0} members`}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={request.status}
+                              color={
+                                request.status === 'approved' ? 'success' :
+                                request.status === 'pending' ? 'warning' :
+                                request.status === 'cancelled' ? 'error' :
+                                'default'
+                              }
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="caption">
+                              {new Date(request.submittedDate).toLocaleDateString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => handleViewDetails(request)}
+                                title="View Details"
+                              >
+                                <VisibilityIcon />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color="secondary"
+                                onClick={() => {
+                                  setSelectedRequest(request);
+                                  setNewStatus(request.status);
+                                  setEditDialog(true);
+                                }}
+                                title="Update Status"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} align="center">
+                          <Box sx={{ py: 8 }}>
+                            <Typography variant="h6" color="text.secondary">
+                              No referee transportation requests found
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+
+          {/* Calendar View */}
+          {viewMode === 'calendar' && (
+            <Card className={classes.tableCard} sx={{ mt: 3, p: 3 }}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                  📅 Transportation Calendar
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  Click on any event to view full details
+                </Typography>
+                <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Chip
+                    icon={<FlightLandIcon />}
+                    label="Arrival"
+                    sx={{ 
+                      background: '#4caf50', 
+                      color: 'white',
+                      fontWeight: 600,
+                    }}
+                  />
+                  <Chip
+                    icon={<FlightTakeoffIcon />}
+                    label="Departure"
+                    sx={{ 
+                      background: '#2196f3', 
+                      color: 'white',
+                      fontWeight: 600,
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Box 
+                className={classes.calendarWrapper} 
+                sx={{ 
+                  height: 650,
+                  background: theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.03)'
+                    : 'rgba(255, 255, 255, 0.5)',
+                  borderRadius: 2,
+                  padding: 2,
+                }}
+              >
+                <Calendar
+                  localizer={localizer}
+                  events={getCalendarEvents()}
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: '100%' }}
+                  onSelectEvent={handleSelectEvent}
+                  eventPropGetter={(event) => ({
+                    style: {
+                      backgroundColor: event.resource.type === 'arrival' ? '#4caf50' : '#2196f3',
+                      color: '#ffffff',
+                      borderRadius: '6px',
+                      border: 'none',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      padding: '4px 8px',
+                    }
+                  })}
+                  views={['month', 'week', 'day', 'agenda']}
+                  defaultView="month"
+                  popup
+                  showMultiDayTimes
+                  tooltipAccessor={(event) => event.title}
+                />
+              </Box>
+            </Card>
+          )}
+        </>
+      )}
+
+      {/* View Details Dialog */}
+      <Dialog
+        open={detailsDialog}
+        onClose={() => setDetailsDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)'
+              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            borderRadius: 3,
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Transportation Request Details
+          </Typography>
+          <IconButton onClick={() => setDetailsDialog(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedRequest && (
+            <Grid container spacing={3}>
+              {/* General Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>General Information</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>User Email:</Typography>
+                    <Typography variant="body2">{selectedRequest.userEmail}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      {selectedRequest.position?.toLowerCase() === 'referee' ? 'Full Name:' : 'Team/Club Name:'}
+                    </Typography>
+                    <Typography variant="body2">
+                      {selectedRequest.position?.toLowerCase() === 'referee' 
+                        ? (selectedRequest.fullName || selectedRequest.teamName || 'N/A')
+                        : (selectedRequest.teamName || 'N/A')
+                      }
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>Phone Number:</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                      {selectedRequest.phoneNumber || 'N/A'}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>Status:</Typography>
+                    <Chip
+                      label={statusConfig[selectedRequest.status]?.label || selectedRequest.status}
+                      color={statusConfig[selectedRequest.status]?.color || 'default'}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>Submitted Date:</Typography>
+                    <Typography variant="body2">
+                      {new Date(selectedRequest.submittedDate).toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider />
+              </Grid>
+
+              {/* Arrival Details */}
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, background: 'rgba(76, 175, 80, 0.1)', borderLeft: '4px solid #4caf50' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <FlightLandIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Arrival Details</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight Number:</Typography>
+                      <Typography variant="body2">{selectedRequest.arrival.flightNumber}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
+                      <Typography variant="body2">{selectedRequest.arrival.airport}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
+                      <Typography variant="body2">{selectedRequest.arrival.terminal}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
+                      <Typography variant="body2">
+                        {new Date(selectedRequest.arrival.date).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
+                      <Typography variant="body2">{selectedRequest.arrival.time}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
+                      <Typography variant="body2">{selectedRequest.arrival.teamMembers} persons</Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
+
+              {/* Departure Details */}
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, background: 'rgba(33, 150, 243, 0.1)', borderLeft: '4px solid #2196f3' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <FlightTakeoffIcon color="primary" sx={{ mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Departure Details</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight Number:</Typography>
+                      <Typography variant="body2">{selectedRequest.departure.flightNumber}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
+                      <Typography variant="body2">{selectedRequest.departure.airport}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
+                      <Typography variant="body2">{selectedRequest.departure.terminal}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
+                      <Typography variant="body2">
+                        {new Date(selectedRequest.departure.date).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
+                      <Typography variant="body2">{selectedRequest.departure.time}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
+                      <Typography variant="body2">{selectedRequest.departure.teamMembers} persons</Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailsDialog(false)} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Status Dialog */}
+      <Dialog
+        open={editDialog}
+        onClose={() => setEditDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)'
+              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            borderRadius: 3,
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Update Transportation Status
+          </Typography>
+          <IconButton onClick={() => setEditDialog(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedRequest && (
+            <Box>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Update status for transportation request from <strong>{selectedRequest.userEmail}</strong>
+              </Typography>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={newStatus}
+                  label="Status"
+                  onChange={(e) => setNewStatus(e.target.value)}
+                >
+                  <MenuItem value="pending">Pending Approval</MenuItem>
+                  <MenuItem value="approved">Approved</MenuItem>
+                  <MenuItem value="cancelled">Cancelled</MenuItem>
+                  <MenuItem value="completed">Completed</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialog(false)} disabled={updating}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpdateStatus}
+            variant="contained"
+            disabled={updating || !newStatus}
+          >
+            {updating ? <CircularProgress size={20} /> : 'Update Status'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Container>
+  );
+}
+
+export default TransportationManagement;
+
