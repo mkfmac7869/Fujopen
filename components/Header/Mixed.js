@@ -7,7 +7,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import link from 'public/text/link';
 import Logo from '../Branding/Logo';
-import MobileMenu from './SideNav/MixedMobile';
+import ModernMobileMenu from './ModernMobileMenu';
 import HeaderMenu from './TopNav/MixedNav';
 import UserMenu from './TopNav/UserMenu';
 import useStyles from './header-style';
@@ -57,12 +57,9 @@ function Mixed(props) {
   return (
     <Fragment>
       {isMobile && (
-        <MobileMenu
+        <ModernMobileMenu
           open={openDrawer}
-          menuPrimary={menu}
           toggleDrawer={handleOpenDrawer}
-          prefix={prefix}
-          singleNav={home}
         />
       )}
       <AppBar
