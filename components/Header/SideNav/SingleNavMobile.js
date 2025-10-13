@@ -33,6 +33,27 @@ function SingleNavMobile(props) {
   const SideList = () => {
     const locale = router.query.locale || 'en';
     
+    // Get translated text for each menu item
+    const getMenuText = (itemName) => {
+      const translationKey = `${prefix}.${itemName}`;
+      const translated = t(translationKey);
+      
+      // If translation failed, return capitalized version of the item name
+      if (translated === translationKey || translated.includes('Landing')) {
+        // Fallback to simple labels
+        const fallbackLabels = {
+          'header_home': 'Home',
+          'header_visa': 'Visa',
+          'header_hotel': 'Hotel',
+          'header_transportation': 'Transportation',
+          'header_profile': 'Profile',
+        };
+        return fallbackLabels[itemName] || itemName;
+      }
+      
+      return translated;
+    };
+    
     return (
     <div
       className={classes.mobileNav}
@@ -51,7 +72,7 @@ function SingleNavMobile(props) {
                   href={item.link}
                   onClick={toggleDrawer}
                 >
-                  <ListItemText primary={t(`${prefix}.${item.name}`)} className={classes.menuList} />
+                  <ListItemText primary={getMenuText(item.name)} className={classes.menuList} />
                 </ListItem>
               ) : singleNav ? (
                 <ListItem
@@ -60,7 +81,7 @@ function SingleNavMobile(props) {
                   href={item.link}
                   onClick={toggleDrawer}
                 >
-                  <ListItemText primary={t(`${prefix}.${item.name}`)} className={classes.menuList} />
+                  <ListItemText primary={getMenuText(item.name)} className={classes.menuList} />
                 </ListItem>
               ) : (
                 <ListItem
@@ -68,7 +89,7 @@ function SingleNavMobile(props) {
                   component={LocaleLink}
                   to={item.link}
                 >
-                  <ListItemText primary={t(`${prefix}.${item.name}`)} className={classes.menuList} />
+                  <ListItemText primary={getMenuText(item.name)} className={classes.menuList} />
                 </ListItem>
               )}
             </Fragment>
