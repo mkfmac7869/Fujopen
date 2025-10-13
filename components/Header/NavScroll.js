@@ -7,7 +7,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import link from 'public/text/link';
 import Logo from '../Branding/Logo';
-import MobileMenu from './SideNav/SingleNavMobile';
+import ModernMobileMenu from './ModernMobileMenu';
 import HeaderMenu from './TopNav/SingleNav';
 import PageNav from './TopNav/PageNav';
 import UserMenu from './TopNav/UserMenu';
@@ -48,12 +48,9 @@ function NavScroll(props) {
   return (
     <Fragment>
       {isMobile && (
-        <MobileMenu
-          menu={menu}
+        <ModernMobileMenu
           open={openDrawer}
           toggleDrawer={handleOpenDrawer}
-          singleNav={home}
-          prefix={prefix}
         />
       )}
       <AppBar
