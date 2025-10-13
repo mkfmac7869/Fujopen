@@ -51,7 +51,7 @@ function SingleNavMobile(props) {
                   href={item.link}
                   onClick={toggleDrawer}
                 >
-                  <ListItemText primary={t(`ai-landing.${item.name}`)} className={classes.menuList} />
+                  <ListItemText primary={t(`${prefix}.${item.name}`)} className={classes.menuList} />
                 </ListItem>
               ) : singleNav ? (
                 <ListItem
@@ -60,7 +60,7 @@ function SingleNavMobile(props) {
                   href={item.link}
                   onClick={toggleDrawer}
                 >
-                  <ListItemText primary={t(`ai-landing.${item.name}`)} className={classes.menuList} />
+                  <ListItemText primary={t(`${prefix}.${item.name}`)} className={classes.menuList} />
                 </ListItem>
               ) : (
                 <ListItem
@@ -68,7 +68,7 @@ function SingleNavMobile(props) {
                   component={LocaleLink}
                   to={item.link}
                 >
-                  <ListItemText primary={t(`ai-landing.${item.name}`)} className={classes.menuList} />
+                  <ListItemText primary={t(`${prefix}.${item.name}`)} className={classes.menuList} />
                 </ListItem>
               )}
             </Fragment>
@@ -76,15 +76,18 @@ function SingleNavMobile(props) {
         </List>
         <Divider />
         <List className={classes.userMenu}>
-          {['login', 'register'].map((text, index) => (
+          {[
+            { name: 'login', label: 'Login' },
+            { name: 'register', label: 'Register' }
+          ].map((item, index) => (
             <ListItem
               key={index.toString()}
-              className={cx(classes.noChild, curURL === curOrigin + langPath + '/' + text + '/' ? classes.current : '')}
+              className={cx(classes.noChild, curURL === curOrigin + langPath + '/' + item.name + '/' ? classes.current : '')}
               component={LocaleLink}
-              to={link[text]}
+              to={link[item.name]}
               button
             >
-              <ListItemText className={classes.menuList} primary={t('' + text)} />
+              <ListItemText className={classes.menuList} primary={item.label} />
             </ListItem>
           ))}
         </List>
