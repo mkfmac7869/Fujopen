@@ -401,45 +401,64 @@ function TransportationManagement() {
       };
 
       if (isNewFormat(req)) {
-        const maxRequests = Math.max(
-          req.arrivalRequests?.length || 0,
-          req.departureRequests?.length || 0
-        );
-
-        for (let i = 0; i < maxRequests; i++) {
-          const arrival = req.arrivalRequests?.[i];
-          const departure = req.departureRequests?.[i];
-
+        // Process arrivals - each on separate row
+        req.arrivalRequests?.forEach((arrival, index) => {
           exportData.push({
             ...baseInfo,
-            'Request Type': maxRequests > 1 ? `Multi (${i + 1}/${maxRequests})` : 'Single',
-            'Arrival Flight': arrival?.flightNumber || 'N/A',
-            'Arrival Airport': arrival?.airport || 'N/A',
-            'Arrival Date': arrival?.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
-            'Arrival Time': arrival?.time || 'N/A',
-            'Arrival Pax': arrival?.teamMembers || 0,
-            'Departure Flight': departure?.flightNumber || 'N/A',
-            'Departure Airport': departure?.airport || 'N/A',
-            'Departure Date': departure?.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
-            'Departure Time': departure?.time || 'N/A',
-            'Departure Pax': departure?.teamMembers || 0,
+            'Type': 'ARRIVAL',
+            'Request #': `${index + 1}/${req.arrivalRequests.length}`,
+            'Flight Number': arrival.flightNumber || 'N/A',
+            'Airport': arrival.airport || 'N/A',
+            'Terminal': arrival.terminal || 'N/A',
+            'Date': arrival.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
+            'Time': arrival.time || 'N/A',
+            'Team Members': arrival.teamMembers || 0,
+          });
+        });
+
+        // Process departures - each on separate row
+        req.departureRequests?.forEach((departure, index) => {
+          exportData.push({
+            ...baseInfo,
+            'Type': 'DEPARTURE',
+            'Request #': `${index + 1}/${req.departureRequests.length}`,
+            'Flight Number': departure.flightNumber || 'N/A',
+            'Airport': departure.airport || 'N/A',
+            'Terminal': departure.terminal || 'N/A',
+            'Date': departure.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
+            'Time': departure.time || 'N/A',
+            'Team Members': departure.teamMembers || 0,
+          });
+        });
+      } else {
+        // Old format - separate rows for arrival and departure
+        if (req.arrival) {
+          exportData.push({
+            ...baseInfo,
+            'Type': 'ARRIVAL',
+            'Request #': '1/1',
+            'Flight Number': req.arrival.flightNumber || 'N/A',
+            'Airport': req.arrival.airport || 'N/A',
+            'Terminal': req.arrival.terminal || 'N/A',
+            'Date': req.arrival.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
+            'Time': req.arrival.time || 'N/A',
+            'Team Members': req.arrival.teamMembers || 0,
           });
         }
-      } else {
-        exportData.push({
-          ...baseInfo,
-          'Request Type': 'Single',
-          'Arrival Flight': req.arrival?.flightNumber || 'N/A',
-          'Arrival Airport': req.arrival?.airport || 'N/A',
-          'Arrival Date': req.arrival?.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
-          'Arrival Time': req.arrival?.time || 'N/A',
-          'Arrival Pax': req.arrival?.teamMembers || 0,
-          'Departure Flight': req.departure?.flightNumber || 'N/A',
-          'Departure Airport': req.departure?.airport || 'N/A',
-          'Departure Date': req.departure?.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
-          'Departure Time': req.departure?.time || 'N/A',
-          'Departure Pax': req.departure?.teamMembers || 0,
-        });
+        
+        if (req.departure) {
+          exportData.push({
+            ...baseInfo,
+            'Type': 'DEPARTURE',
+            'Request #': '1/1',
+            'Flight Number': req.departure.flightNumber || 'N/A',
+            'Airport': req.departure.airport || 'N/A',
+            'Terminal': req.departure.terminal || 'N/A',
+            'Date': req.departure.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
+            'Time': req.departure.time || 'N/A',
+            'Team Members': req.departure.teamMembers || 0,
+          });
+        }
       }
     });
 
@@ -468,58 +487,92 @@ function TransportationManagement() {
     doc.text(`Total Requests: ${team.total}`, 14, 44);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 51);
     
-    // Prepare table data
+    // Prepare table data - separate rows for arrivals and departures
     const tableData = [];
     team.requests.forEach(req => {
       if (isNewFormat(req)) {
-        const maxRequests = Math.max(
-          req.arrivalRequests?.length || 0,
-          req.departureRequests?.length || 0
-        );
-
-        for (let i = 0; i < maxRequests; i++) {
-          const arrival = req.arrivalRequests?.[i];
-          const departure = req.departureRequests?.[i];
-
+        // Process arrivals - each on separate row
+        req.arrivalRequests?.forEach((arrival, index) => {
           tableData.push([
-            maxRequests > 1 ? `${i + 1}/${maxRequests}` : 'Single',
-            arrival?.flightNumber || 'N/A',
-            arrival?.airport?.substring(0, 20) || 'N/A',
-            arrival?.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
-            arrival?.time || 'N/A',
-            departure?.flightNumber || 'N/A',
-            departure?.airport?.substring(0, 20) || 'N/A',
-            departure?.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
-            departure?.time || 'N/A',
+            'ARRIVAL',
+            `${index + 1}/${req.arrivalRequests.length}`,
+            arrival.flightNumber || 'N/A',
+            arrival.airport?.substring(0, 25) || 'N/A',
+            arrival.terminal || 'N/A',
+            arrival.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
+            arrival.time || 'N/A',
+            arrival.teamMembers || 0,
+            req.status,
+          ]);
+        });
+
+        // Process departures - each on separate row
+        req.departureRequests?.forEach((departure, index) => {
+          tableData.push([
+            'DEPARTURE',
+            `${index + 1}/${req.departureRequests.length}`,
+            departure.flightNumber || 'N/A',
+            departure.airport?.substring(0, 25) || 'N/A',
+            departure.terminal || 'N/A',
+            departure.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
+            departure.time || 'N/A',
+            departure.teamMembers || 0,
+            req.status,
+          ]);
+        });
+      } else {
+        // Old format - separate rows
+        if (req.arrival) {
+          tableData.push([
+            'ARRIVAL',
+            '1/1',
+            req.arrival.flightNumber || 'N/A',
+            req.arrival.airport?.substring(0, 25) || 'N/A',
+            req.arrival.terminal || 'N/A',
+            req.arrival.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
+            req.arrival.time || 'N/A',
+            req.arrival.teamMembers || 0,
             req.status,
           ]);
         }
-      } else {
-        tableData.push([
-          'Single',
-          req.arrival?.flightNumber || 'N/A',
-          req.arrival?.airport?.substring(0, 20) || 'N/A',
-          req.arrival?.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
-          req.arrival?.time || 'N/A',
-          req.departure?.flightNumber || 'N/A',
-          req.departure?.airport?.substring(0, 20) || 'N/A',
-          req.departure?.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
-          req.departure?.time || 'N/A',
-          req.status,
-        ]);
+        
+        if (req.departure) {
+          tableData.push([
+            'DEPARTURE',
+            '1/1',
+            req.departure.flightNumber || 'N/A',
+            req.departure.airport?.substring(0, 25) || 'N/A',
+            req.departure.terminal || 'N/A',
+            req.departure.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
+            req.departure.time || 'N/A',
+            req.departure.teamMembers || 0,
+            req.status,
+          ]);
+        }
       }
     });
     
     // Add table
     autoTable(doc, {
       startY: 60,
-      head: [['Type', 'Arr Flight', 'Arr Airport', 'Arr Date', 'Arr Time', 'Dep Flight', 'Dep Airport', 'Dep Date', 'Dep Time', 'Status']],
+      head: [['Type', 'Request #', 'Flight', 'Airport', 'Terminal', 'Date', 'Time', 'Pax', 'Status']],
       body: tableData,
       theme: 'grid',
       headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [245, 247, 250] },
       margin: { top: 60 },
-      styles: { fontSize: 8, cellPadding: 3 },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 20 }, // Type
+        1: { cellWidth: 15 }, // Request #
+        2: { cellWidth: 20 }, // Flight
+        3: { cellWidth: 35 }, // Airport
+        4: { cellWidth: 18 }, // Terminal
+        5: { cellWidth: 22 }, // Date
+        6: { cellWidth: 15 }, // Time
+        7: { cellWidth: 12 }, // Pax
+        8: { cellWidth: 20 }, // Status
+      },
     });
     
     const teamFileName = (team.teamName || team.email).replace(/[^a-z0-9]/gi, '_');
