@@ -1288,7 +1288,7 @@ function TransportationManagement() {
 
           {/* Calendar View */}
           {viewMode === 'calendar' && (
-            <Card className={classes.tableCard} sx={{ mt: 3, p: 3 }}>
+            <Card className={classes.tableCard} sx={{ mt: 3, p: 3, mb: 5 }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                   📅 Transportation Calendar
@@ -1320,12 +1320,14 @@ function TransportationManagement() {
               <Box 
                 className={classes.calendarWrapper} 
                 sx={{ 
-                  height: 650,
+                  height: 800,
+                  minHeight: '800px',
                   background: theme.palette.mode === 'dark'
                     ? 'rgba(255, 255, 255, 0.03)'
                     : 'rgba(255, 255, 255, 0.5)',
                   borderRadius: 2,
                   padding: 2,
+                  overflow: 'visible',
                 }}
               >
                 <Calendar
@@ -1333,7 +1335,7 @@ function TransportationManagement() {
                   events={getCalendarEvents()}
                   startAccessor="start"
                   endAccessor="end"
-                  style={{ height: '100%' }}
+                  style={{ height: '100%', minHeight: '750px' }}
                   onSelectEvent={handleSelectEvent}
                   onShowMore={(events, date) => {
                     console.log('📅 Show more clicked for date:', date, 'Events:', events.length);
