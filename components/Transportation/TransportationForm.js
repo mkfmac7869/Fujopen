@@ -723,16 +723,19 @@ function TransportationForm({ onSuccess }) {
                 {/* Hotel Selection (Non-Referees Only) */}
                 {!isReferee && hotelBookings.length > 0 && (
                   <Grid item xs={12}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme => theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155' }}>
+                      Select Destination Hotel *
+                    </Typography>
                     <TextField
                       select
                       fullWidth
                       variant="filled"
-                      label="Select Destination Hotel"
                       value={request.selectedHotel}
                       onChange={(e) => updateArrivalRequest(request.id, 'selectedHotel', e.target.value)}
                       className={classes.inputField}
                       required
-                      helperText="Choose which hotel for this arrival"
+                      placeholder="Choose which hotel for this arrival"
+                      InputLabelProps={{ shrink: false }}
                     >
                       {hotelBookings.flatMap(booking => 
                         booking.individualBookings?.map(hotel => (
@@ -762,15 +765,18 @@ function TransportationForm({ onSuccess }) {
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme => theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155' }}>
+                    Airport *
+                  </Typography>
                   <TextField
                     select
                     fullWidth
                     variant="filled"
-                    label="Airport"
                     value={request.airport}
                     onChange={(e) => updateArrivalRequest(request.id, 'airport', e.target.value)}
                     className={classes.inputField}
                     required
+                    InputLabelProps={{ shrink: false }}
                   >
                     {airports.map((airport) => (
                       <MenuItem key={airport} value={airport}>
@@ -781,15 +787,18 @@ function TransportationForm({ onSuccess }) {
                 </Grid>
 
                 <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme => theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155' }}>
+                    Terminal *
+                  </Typography>
                   <TextField
                     select
                     fullWidth
                     variant="filled"
-                    label="Terminal"
                     value={request.terminal}
                     onChange={(e) => updateArrivalRequest(request.id, 'terminal', e.target.value)}
                     className={classes.inputField}
                     required
+                    InputLabelProps={{ shrink: false }}
                   >
                     {terminals.map((terminal) => (
                       <MenuItem key={terminal} value={terminal}>
@@ -896,16 +905,19 @@ function TransportationForm({ onSuccess }) {
                 {/* Hotel Selection (Non-Referees Only) */}
                 {!isReferee && hotelBookings.length > 0 && (
                   <Grid item xs={12}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme => theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155' }}>
+                      Select Departure Hotel *
+                    </Typography>
                     <TextField
                       select
                       fullWidth
                       variant="filled"
-                      label="Select Departure Hotel"
                       value={request.selectedHotel}
                       onChange={(e) => updateDepartureRequest(request.id, 'selectedHotel', e.target.value)}
                       className={classes.inputField}
                       required
-                      helperText="Choose which hotel for this departure"
+                      placeholder="Choose which hotel for this departure"
+                      InputLabelProps={{ shrink: false }}
                     >
                       {hotelBookings.flatMap(booking => 
                         booking.individualBookings?.map(hotel => (
@@ -935,15 +947,18 @@ function TransportationForm({ onSuccess }) {
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme => theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155' }}>
+                    Airport *
+                  </Typography>
                   <TextField
                     select
                     fullWidth
                     variant="filled"
-                    label="Airport"
                     value={request.airport}
                     onChange={(e) => updateDepartureRequest(request.id, 'airport', e.target.value)}
                     className={classes.inputField}
                     required
+                    InputLabelProps={{ shrink: false }}
                   >
                     {airports.map((airport) => (
                       <MenuItem key={airport} value={airport}>
@@ -954,15 +969,18 @@ function TransportationForm({ onSuccess }) {
                 </Grid>
 
                 <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme => theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155' }}>
+                    Terminal *
+                  </Typography>
                   <TextField
                     select
                     fullWidth
                     variant="filled"
-                    label="Terminal"
                     value={request.terminal}
                     onChange={(e) => updateDepartureRequest(request.id, 'terminal', e.target.value)}
                     className={classes.inputField}
                     required
+                    InputLabelProps={{ shrink: false }}
                   >
                     {terminals.map((terminal) => (
                       <MenuItem key={terminal} value={terminal}>
