@@ -466,52 +466,175 @@ function TransportationForm({ onSuccess }) {
       {/* Hotel Booking Info (Non-Referees) */}
       {!isReferee && hotelBookings.length > 0 && (
         <Paper className={classes.formBox} sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
             <HotelIcon /> Your Confirmed Hotel Bookings
           </Typography>
           
-          {hotelBookings.map((booking, index) => (
-            <Card key={booking.id} sx={{ mb: 2, background: 'rgba(16, 185, 129, 0.08)' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: 2 }}>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                      Booking #{index + 1}
-                    </Typography>
-                    <Chip 
-                      label={`Confirmation: ${booking.groupId || booking.id}`} 
-                      size="small" 
-                      color="success"
-                      sx={{ fontWeight: 600, mb: 1 }}
-                    />
-                    <Typography variant="body2" sx={{ opacity: 0.8, mt: 1 }}>
-                      {booking.numberOfBookings} hotel(s) • {booking.individualBookings?.reduce((sum, b) => sum + (b.guests?.length || 0), 0) || 0} team members
-                    </Typography>
-                  </Box>
-                  
-                  {/* Hotel List */}
-                  <Box sx={{ flex: 1, minWidth: 250 }}>
-                    {booking.individualBookings && booking.individualBookings.map((hotel, hIdx) => (
-                      <Typography key={hIdx} variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                        <HotelIcon fontSize="small" />
-                        <strong>{hotel.hotelName}</strong> ({hotel.guests?.length || 0} guests)
+          {hotelBookings.map((booking, bookingIndex) => {
+            // Generate clean confirmation code (last 8 chars of groupId)
+            const cleanConfirmation = (booking.groupId || booking.id).slice(-8).toUpperCase();
+            
+            return (
+              <Box key={booking.id} sx={{ mb: 3 }}>
+                {/* Booking Group Header */}
+                <Box sx={{ 
+                  mb: 2, 
+                  p: 2, 
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1))',
+                  borderRadius: 2,
+                  border: '2px solid rgba(16, 185, 129, 0.3)'
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ opacity: 0.7, mb: 0.5 }}>
+                        Booking Group #{bookingIndex + 1}
                       </Typography>
-                    ))}
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: 'success.dark' }}>
+                        Confirmation: <span style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}>{cleanConfirmation}</span>
+                      </Typography>
+                    </Box>
+                    <Chip 
+                      label={`${booking.numberOfBookings} Hotel${booking.numberOfBookings > 1 ? 's' : ''}`}
+                      sx={{ 
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        color: 'white',
+                        fontWeight: 700,
+                        fontSize: '0.9rem'
+                      }}
+                    />
                   </Box>
                 </Box>
-              </CardContent>
-            </Card>
-          ))}
 
-          <Divider sx={{ my: 2 }} />
+                {/* Individual Hotels */}
+                <Grid container spacing={2}>
+                  {booking.individualBookings && booking.individualBookings.map((hotel, hotelIndex) => (
+                    <Grid item xs={12} md={6} key={hotelIndex}>
+                      <Card sx={{ 
+                        height: '100%',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7))',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          boxShadow: '0 8px 24px rgba(16, 185, 129, 0.2)',
+                          transform: 'translateY(-4px)',
+                        }
+                      }}>
+                        <CardContent>
+                          {/* Hotel Name */}
+                          <Box sx={{ display: 'flex', alignItems: 'start', gap: 1.5, mb: 2 }}>
+                            <HotelIcon sx={{ fontSize: 28, color: 'success.main', mt: 0.5 }} />
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, lineHeight: 1.3 }}>
+                                {hotel.hotelName}
+                              </Typography>
+                              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                {hotel.hotelLocation || 'Fujairah, UAE'}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Divider sx={{ my: 1.5 }} />
+
+                          {/* Hotel Details */}
+                          <Grid container spacing={1.5}>
+                            <Grid item xs={6}>
+                              <Box sx={{ 
+                                p: 1.5, 
+                                background: 'rgba(16, 185, 129, 0.08)', 
+                                borderRadius: 1.5,
+                                textAlign: 'center'
+                              }}>
+                                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 0.5 }}>
+                                  Capacity
+                                </Typography>
+                                <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main' }}>
+                                  {hotel.guests?.length || 0}
+                                </Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                  guests
+                                </Typography>
+                              </Box>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Box sx={{ 
+                                p: 1.5, 
+                                background: 'rgba(99, 102, 241, 0.08)', 
+                                borderRadius: 1.5,
+                                textAlign: 'center'
+                              }}>
+                                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 0.5 }}>
+                                  Rooms
+                                </Typography>
+                                <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                                  {hotel.numberOfRooms || 1}
+                                </Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                  room{hotel.numberOfRooms > 1 ? 's' : ''}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Box sx={{ 
+                                p: 1.5, 
+                                background: 'rgba(251, 191, 36, 0.08)', 
+                                borderRadius: 1.5,
+                              }}>
+                                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 0.5 }}>
+                                  Check-in / Check-out
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {hotel.checkInDate ? new Date(hotel.checkInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'} → {hotel.checkOutDate ? new Date(hotel.checkOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                </Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                  {hotel.numberOfNights || 0} night{hotel.numberOfNights > 1 ? 's' : ''}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          </Grid>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            );
+          })}
+
+          <Divider sx={{ my: 3 }} />
           
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Total Team Member Capacity: <Chip label={totalCapacity} color="primary" sx={{ fontWeight: 700, fontSize: '1rem' }} />
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-              ⚠️ Your transportation requests cannot exceed this capacity
-            </Typography>
+          {/* Total Capacity Summary */}
+          <Box sx={{ 
+            p: 3, 
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08))',
+            borderRadius: 2,
+            border: '2px solid rgba(99, 102, 241, 0.2)'
+          }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={6}>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+                  Total Team Member Capacity
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                  Combined capacity across all confirmed bookings
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                <Chip 
+                  label={totalCapacity} 
+                  sx={{ 
+                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    color: 'white',
+                    fontWeight: 800,
+                    fontSize: '1.5rem',
+                    height: 48,
+                    px: 2
+                  }}
+                />
+                <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.7 }}>
+                  ⚠️ Your transportation requests cannot exceed this capacity
+                </Typography>
+              </Grid>
+            </Grid>
           </Box>
         </Paper>
       )}
