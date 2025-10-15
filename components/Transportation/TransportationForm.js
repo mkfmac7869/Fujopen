@@ -471,40 +471,8 @@ function TransportationForm({ onSuccess }) {
           </Typography>
           
           {hotelBookings.map((booking, bookingIndex) => {
-            // Generate clean confirmation code (last 8 chars of groupId)
-            const cleanConfirmation = (booking.groupId || booking.id).slice(-8).toUpperCase();
-            
             return (
               <Box key={booking.id} sx={{ mb: 3 }}>
-                {/* Booking Group Header */}
-                <Box sx={{ 
-                  mb: 2, 
-                  p: 2, 
-                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1))',
-                  borderRadius: 2,
-                  border: '2px solid rgba(16, 185, 129, 0.3)'
-                }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ opacity: 0.7, mb: 0.5 }}>
-                        Booking Group #{bookingIndex + 1}
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: 'success.dark' }}>
-                        Confirmation: <span style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}>{cleanConfirmation}</span>
-                      </Typography>
-                    </Box>
-                    <Chip 
-                      label={`${booking.numberOfBookings} Hotel${booking.numberOfBookings > 1 ? 's' : ''}`}
-                      sx={{ 
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        color: 'white',
-                        fontWeight: 700,
-                        fontSize: '0.9rem'
-                      }}
-                    />
-                  </Box>
-                </Box>
-
                 {/* Individual Hotels */}
                 <Grid container spacing={2}>
                   {booking.individualBookings && booking.individualBookings.map((hotel, hotelIndex) => {
@@ -515,13 +483,19 @@ function TransportationForm({ onSuccess }) {
                     <Grid item xs={12} md={6} key={hotelIndex}>
                       <Card sx={{ 
                         height: '100%',
-                        background: '#ffffff',
-                        border: '2px solid rgba(16, 185, 129, 0.3)',
-                        transition: 'all 0.2s ease',
+                        background: theme => theme.palette.mode === 'dark'
+                          ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)'
+                          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+                        backdropFilter: 'blur(40px)',
+                        WebkitBackdropFilter: 'blur(40px)',
+                        border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.18)' : 'rgba(16, 185, 129, 0.25)'}`,
+                        borderRadius: 3,
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                          boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
-                          transform: 'translateY(-4px)',
-                          borderColor: 'rgba(16, 185, 129, 0.5)',
+                          boxShadow: '0 12px 40px rgba(16, 185, 129, 0.2)',
+                          transform: 'translateY(-8px)',
+                          border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(16, 185, 129, 0.4)'}`,
                         }
                       }}>
                         <CardContent>
@@ -529,10 +503,10 @@ function TransportationForm({ onSuccess }) {
                           <Box sx={{ display: 'flex', alignItems: 'start', gap: 1.5, mb: 1.5 }}>
                             <HotelIcon sx={{ fontSize: 32, color: 'success.main', mt: 0.5 }} />
                             <Box sx={{ flex: 1 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, lineHeight: 1.3, color: '#1e293b' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, lineHeight: 1.3, color: theme => theme.palette.mode === 'dark' ? '#f1f5f9' : '#1e293b' }}>
                                 {hotel.hotelName}
                               </Typography>
-                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>
+                              <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#cbd5e1' : '#64748b', fontWeight: 500 }}>
                                 {hotel.hotelLocation || 'Fujairah, UAE'}
                               </Typography>
                             </Box>
@@ -542,17 +516,20 @@ function TransportationForm({ onSuccess }) {
                           <Box sx={{ 
                             mb: 2, 
                             p: 1.5, 
-                            background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                            background: theme => theme.palette.mode === 'dark'
+                              ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15))'
+                              : 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
                             borderRadius: 1.5,
-                            border: '1px solid #86efac'
+                            border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(134, 239, 172, 0.3)' : '1px solid #86efac',
+                            backdropFilter: 'blur(10px)',
                           }}>
-                            <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#86efac' : '#166534', fontWeight: 700, display: 'block', mb: 0.5 }}>
                               CONFIRMATION NUMBER
                             </Typography>
                             <Typography variant="h6" sx={{ 
                               fontFamily: 'monospace', 
                               fontWeight: 800, 
-                              color: '#15803d',
+                              color: theme => theme.palette.mode === 'dark' ? '#4ade80' : '#15803d',
                               letterSpacing: '0.1em'
                             }}>
                               {hotelConfirmation}
@@ -564,18 +541,21 @@ function TransportationForm({ onSuccess }) {
                             <Grid item xs={6}>
                               <Box sx={{ 
                                 p: 1.5, 
-                                background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', 
+                                background: theme => theme.palette.mode === 'dark'
+                                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1))'
+                                  : 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                                backdropFilter: 'blur(10px)',
                                 borderRadius: 1.5,
                                 textAlign: 'center',
-                                border: '1px solid #bbf7d0'
+                                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(187, 247, 208, 0.2)' : '1px solid #bbf7d0'
                               }}>
-                                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#86efac' : '#166534', fontWeight: 700, display: 'block', mb: 0.5 }}>
                                   Capacity
                                 </Typography>
-                                <Typography variant="h4" sx={{ fontWeight: 900, color: '#15803d' }}>
+                                <Typography variant="h4" sx={{ fontWeight: 900, color: theme => theme.palette.mode === 'dark' ? '#4ade80' : '#15803d' }}>
                                   {hotel.guests?.length || 0}
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600 }}>
+                                <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#86efac' : '#166534', fontWeight: 600 }}>
                                   guests
                                 </Typography>
                               </Box>
@@ -583,18 +563,21 @@ function TransportationForm({ onSuccess }) {
                             <Grid item xs={6}>
                               <Box sx={{ 
                                 p: 1.5, 
-                                background: 'linear-gradient(135deg, #ede9fe, #ddd6fe)', 
+                                background: theme => theme.palette.mode === 'dark'
+                                  ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1))'
+                                  : 'linear-gradient(135deg, #ede9fe, #ddd6fe)',
+                                backdropFilter: 'blur(10px)',
                                 borderRadius: 1.5,
                                 textAlign: 'center',
-                                border: '1px solid #c4b5fd'
+                                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(196, 181, 253, 0.2)' : '1px solid #c4b5fd'
                               }}>
-                                <Typography variant="caption" sx={{ color: '#5b21b6', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#c4b5fd' : '#5b21b6', fontWeight: 700, display: 'block', mb: 0.5 }}>
                                   Rooms
                                 </Typography>
-                                <Typography variant="h4" sx={{ fontWeight: 900, color: '#6d28d9' }}>
+                                <Typography variant="h4" sx={{ fontWeight: 900, color: theme => theme.palette.mode === 'dark' ? '#a78bfa' : '#6d28d9' }}>
                                   {hotel.numberOfRooms || 1}
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: '#5b21b6', fontWeight: 600 }}>
+                                <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#c4b5fd' : '#5b21b6', fontWeight: 600 }}>
                                   room{hotel.numberOfRooms > 1 ? 's' : ''}
                                 </Typography>
                               </Box>
@@ -602,17 +585,20 @@ function TransportationForm({ onSuccess }) {
                             <Grid item xs={12}>
                               <Box sx={{ 
                                 p: 1.5, 
-                                background: 'linear-gradient(135deg, #fef3c7, #fde68a)', 
+                                background: theme => theme.palette.mode === 'dark'
+                                  ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1))'
+                                  : 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                                backdropFilter: 'blur(10px)',
                                 borderRadius: 1.5,
-                                border: '1px solid #fcd34d'
+                                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(252, 211, 77, 0.2)' : '1px solid #fcd34d'
                               }}>
-                                <Typography variant="caption" sx={{ color: '#78350f', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fcd34d' : '#78350f', fontWeight: 700, display: 'block', mb: 0.5 }}>
                                   Check-in / Check-out
                                 </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: 700, color: '#92400e' }}>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme => theme.palette.mode === 'dark' ? '#fbbf24' : '#92400e' }}>
                                   {hotel.checkInDate ? new Date(hotel.checkInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'} → {hotel.checkOutDate ? new Date(hotel.checkOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: '#78350f', fontWeight: 600 }}>
+                                <Typography variant="caption" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fcd34d' : '#78350f', fontWeight: 600 }}>
                                   {hotel.numberOfNights || 0} night{hotel.numberOfNights > 1 ? 's' : ''}
                                 </Typography>
                               </Box>
