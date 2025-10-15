@@ -190,6 +190,40 @@ const airports = [
   'Ras Al Khaimah International Airport (RKT)'
 ];
 
+// Helper function to check if request is new format (multi-request)
+const isNewFormat = (request) => {
+  return !!(request.arrivalRequests || request.departureRequests);
+};
+
+// Helper function to get summary for display in tables
+const getRequestSummary = (request) => {
+  if (isNewFormat(request)) {
+    return {
+      arrivalCount: request.totalArrivalRequests || request.arrivalRequests?.length || 0,
+      departureCount: request.totalDepartureRequests || request.departureRequests?.length || 0,
+      totalTeamMembers: request.totalTeamMembers || 0,
+      arrivalText: request.arrivalRequests?.length > 0 
+        ? `${request.arrivalRequests.length} arrivals`
+        : 'No arrivals',
+      departureText: request.departureRequests?.length > 0
+        ? `${request.departureRequests.length} departures`
+        : 'No departures',
+      firstArrival: request.arrivalRequests?.[0] || null,
+      firstDeparture: request.departureRequests?.[0] || null,
+    };
+  } else {
+    return {
+      arrivalCount: 1,
+      departureCount: 1,
+      totalTeamMembers: Math.max(request.arrival?.teamMembers || 0, request.departure?.teamMembers || 0),
+      arrivalText: request.arrival?.flightNumber || 'N/A',
+      departureText: request.departure?.flightNumber || 'N/A',
+      firstArrival: request.arrival || null,
+      firstDeparture: request.departure || null,
+    };
+  }
+};
+
 function TransportationManagement() {
   const { classes } = useStyles();
   const theme = useTheme();
@@ -606,7 +640,11 @@ function TransportationManagement() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredRequests.map((request) => (
+                  {filteredRequests.map((request) => {
+                    const summary = getRequestSummary(request);
+                    const isMulti = isNewFormat(request);
+                    
+                    return (
                     <TableRow key={request.id} hover>
                       <TableCell>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -615,37 +653,93 @@ function TransportationManagement() {
                         <Typography variant="caption" sx={{ opacity: 0.7 }}>
                           {request.userEmail}
                         </Typography>
+                        {isMulti && (
+                          <Chip 
+                            label="Multi-Request" 
+                            size="small" 
+                            sx={{ mt: 0.5, fontSize: '0.7rem', height: 18 }}
+                            color="info"
+                          />
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                          <FlightLandIcon fontSize="small" color="success" />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {request.arrival.flightNumber}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" display="block">
-                          {request.arrival.airport}
-                        </Typography>
-                        <Typography variant="caption" display="block">
-                          {new Date(request.arrival.date).toLocaleDateString()} {request.arrival.time}
-                        </Typography>
+                        {isMulti ? (
+                          <Box>
+                            <Chip 
+                              icon={<FlightLandIcon fontSize="small" />}
+                              label={summary.arrivalText}
+                              size="small"
+                              color="success"
+                              variant="outlined"
+                              sx={{ fontWeight: 600 }}
+                            />
+                            {summary.firstArrival && (
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
+                                First: {summary.firstArrival.flightNumber}
+                              </Typography>
+                            )}
+                          </Box>
+                        ) : (
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                              <FlightLandIcon fontSize="small" color="success" />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {summary.firstArrival?.flightNumber || 'N/A'}
+                              </Typography>
+                            </Box>
+                            <Typography variant="caption" display="block">
+                              {summary.firstArrival?.airport || 'N/A'}
+                            </Typography>
+                            {summary.firstArrival?.date && (
+                              <Typography variant="caption" display="block">
+                                {new Date(summary.firstArrival.date).toLocaleDateString()} {summary.firstArrival.time}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                          <FlightTakeoffIcon fontSize="small" color="primary" />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {request.departure.flightNumber}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" display="block">
-                          {request.departure.airport}
-                        </Typography>
-                        <Typography variant="caption" display="block">
-                          {new Date(request.departure.date).toLocaleDateString()} {request.departure.time}
-                        </Typography>
+                        {isMulti ? (
+                          <Box>
+                            <Chip 
+                              icon={<FlightTakeoffIcon fontSize="small" />}
+                              label={summary.departureText}
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                              sx={{ fontWeight: 600 }}
+                            />
+                            {summary.firstDeparture && (
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
+                                First: {summary.firstDeparture.flightNumber}
+                              </Typography>
+                            )}
+                          </Box>
+                        ) : (
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                              <FlightTakeoffIcon fontSize="small" color="primary" />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {summary.firstDeparture?.flightNumber || 'N/A'}
+                              </Typography>
+                            </Box>
+                            <Typography variant="caption" display="block">
+                              {summary.firstDeparture?.airport || 'N/A'}
+                            </Typography>
+                            {summary.firstDeparture?.date && (
+                              <Typography variant="caption" display="block">
+                                {new Date(summary.firstDeparture.date).toLocaleDateString()} {summary.firstDeparture.time}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {request.arrival.teamMembers} members
+                        <Chip 
+                          label={`${summary.totalTeamMembers} members`}
+                          size="small"
+                          variant="outlined"
+                        />
                       </TableCell>
                       <TableCell>
                         <Chip
@@ -678,7 +772,8 @@ function TransportationManagement() {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -719,18 +814,22 @@ function TransportationManagement() {
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {team.requests.map((request) => (
+                            {team.requests.map((request) => {
+                              const summary = getRequestSummary(request);
+                              return (
                               <TableRow key={request.id} hover>
                                 <TableCell>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <FlightLandIcon fontSize="small" color="success" />
                                     <Box>
                                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                        {request.arrival.flightNumber}
+                                        {summary.arrivalText}
                                       </Typography>
-                                      <Typography variant="caption" display="block">
-                                        {new Date(request.arrival.date).toLocaleDateString()} {request.arrival.time}
-                                      </Typography>
+                                      {summary.firstArrival?.date && (
+                                        <Typography variant="caption" display="block">
+                                          {new Date(summary.firstArrival.date).toLocaleDateString()} {summary.firstArrival.time}
+                                        </Typography>
+                                      )}
                                     </Box>
                                   </Box>
                                 </TableCell>
@@ -739,16 +838,18 @@ function TransportationManagement() {
                                     <FlightTakeoffIcon fontSize="small" color="primary" />
                                     <Box>
                                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                        {request.departure.flightNumber}
+                                        {summary.departureText}
                                       </Typography>
-                                      <Typography variant="caption" display="block">
-                                        {new Date(request.departure.date).toLocaleDateString()} {request.departure.time}
-                                      </Typography>
+                                      {summary.firstDeparture?.date && (
+                                        <Typography variant="caption" display="block">
+                                          {new Date(summary.firstDeparture.date).toLocaleDateString()} {summary.firstDeparture.time}
+                                        </Typography>
+                                      )}
                                     </Box>
                                   </Box>
                                 </TableCell>
                                 <TableCell>
-                                  {request.arrival.teamMembers} members
+                                  {summary.totalTeamMembers} members
                                 </TableCell>
                                 <TableCell>
                                   <Chip
@@ -778,7 +879,8 @@ function TransportationManagement() {
                                   </Box>
                                 </TableCell>
                               </TableRow>
-                            ))}
+                              );
+                            })}
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -890,10 +992,16 @@ function TransportationManagement() {
                               <FlightLandIcon sx={{ fontSize: 20, color: theme.palette.success.main }} />
                               <Box>
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {request.arrival?.flightNumber}
+                                  {(() => {
+                                    const summary = getRequestSummary(request);
+                                    return summary.arrivalText;
+                                  })()}
                                 </Typography>
                                 <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                                  {request.arrival?.airport} • {request.arrival?.date}
+                                  {(() => {
+                                    const summary = getRequestSummary(request);
+                                    return summary.firstArrival ? `${summary.firstArrival.airport} • ${summary.firstArrival.date}` : 'N/A';
+                                  })()}
                                 </Typography>
                               </Box>
                             </Box>
@@ -903,17 +1011,23 @@ function TransportationManagement() {
                               <FlightTakeoffIcon sx={{ fontSize: 20, color: theme.palette.info.main }} />
                               <Box>
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {request.departure?.flightNumber}
+                                  {(() => {
+                                    const summary = getRequestSummary(request);
+                                    return summary.departureText;
+                                  })()}
                                 </Typography>
                                 <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                                  {request.departure?.airport} • {request.departure?.date}
+                                  {(() => {
+                                    const summary = getRequestSummary(request);
+                                    return summary.firstDeparture ? `${summary.firstDeparture.airport} • ${summary.firstDeparture.date}` : 'N/A';
+                                  })()}
                                 </Typography>
                               </Box>
                             </Box>
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={`${request.arrival?.teamMembers || 0} members`}
+                              label={`${getRequestSummary(request).totalTeamMembers || 0} members`}
                               size="small"
                               variant="outlined"
                             />
