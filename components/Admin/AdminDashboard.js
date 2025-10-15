@@ -26,6 +26,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -118,6 +119,7 @@ function AdminDashboard() {
     pendingBookings: 0,
     totalTransportation: 0,
     pendingTransportation: 0,
+    totalCertificates: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -168,6 +170,10 @@ function AdminDashboard() {
         const pendingTransportationSnapshot = await getDocs(pendingTransportationQuery);
         console.log('Pending transportation count:', pendingTransportationSnapshot.size);
 
+        // Fetch certificates count
+        const certificatesSnapshot = await getDocs(collection(db, 'certificates'));
+        console.log('Total certificates:', certificatesSnapshot.size);
+
         const newStats = {
           totalUsers: usersSnapshot.size,
           totalVisaApplications: visasSnapshot.size,
@@ -178,6 +184,7 @@ function AdminDashboard() {
           pendingBookings: pendingBookingsSnapshot.size,
           totalTransportation: transportationSnapshot.size,
           pendingTransportation: pendingTransportationSnapshot.size,
+          totalCertificates: certificatesSnapshot.size,
         };
         
         console.log('Final stats:', newStats);
@@ -233,6 +240,14 @@ function AdminDashboard() {
       path: '/admin/user-management',
       color: theme.palette.info.main,
       stats: `${stats.totalUsers} Users`,
+    },
+    {
+      title: 'Certificate Management',
+      description: 'Upload certificates data via CSV and manage certificate templates',
+      icon: <EmojiEventsIcon sx={{ fontSize: 64 }} />,
+      path: '/admin/certificate-management',
+      color: '#fbbf24',
+      stats: `${stats.totalCertificates} Certificates`,
     },
   ];
 
