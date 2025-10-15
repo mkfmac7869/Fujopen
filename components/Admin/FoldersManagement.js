@@ -46,6 +46,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import * as XLSX from 'xlsx';
@@ -230,6 +231,25 @@ function FoldersManagement() {
     } catch (error) {
       console.error('Error deleting folder:', error);
       setSnackbar({ open: true, message: 'Failed to delete folder', severity: 'error' });
+    }
+  };
+
+  const handleRemoveFromFolder = async (applicationId) => {
+    if (!confirm('Remove this application from the folder?')) return;
+
+    try {
+      const currentFolder = folders[activeFolder];
+      const newApplicationIds = currentFolder.applicationIds.filter(id => id !== applicationId);
+
+      await updateDoc(doc(db, 'visaFolders', currentFolder.id), {
+        applicationIds: newApplicationIds,
+      });
+
+      setSnackbar({ open: true, message: 'Application removed from folder!', severity: 'success' });
+      fetchData();
+    } catch (error) {
+      console.error('Error removing from folder:', error);
+      setSnackbar({ open: true, message: 'Failed to remove application', severity: 'error' });
     }
   };
 
@@ -635,26 +655,38 @@ function FoldersManagement() {
                             {new Date(app.submittedDate).toLocaleDateString()}
                           </TableCell>
                           <TableCell>
-                            <IconButton 
-                              size="small"
-                              onClick={() => {
-                                setSelectedApplication(app);
-                                setDetailsDialog(true);
-                              }}
-                            >
-                              <VisibilityIcon />
-                            </IconButton>
-                            <IconButton 
-                              size="small"
-                              color="primary"
-                              onClick={() => {
-                                setSelectedApplication(app);
-                                setNewStatus(app.status);
-                                setEditDialog(true);
-                              }}
-                            >
-                              <EditIcon />
-                            </IconButton>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                              <IconButton 
+                                size="small"
+                                onClick={() => {
+                                  setSelectedApplication(app);
+                                  setDetailsDialog(true);
+                                }}
+                                title="View Details"
+                              >
+                                <VisibilityIcon />
+                              </IconButton>
+                              <IconButton 
+                                size="small"
+                                color="primary"
+                                onClick={() => {
+                                  setSelectedApplication(app);
+                                  setNewStatus(app.status);
+                                  setEditDialog(true);
+                                }}
+                                title="Edit Status"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton 
+                                size="small"
+                                color="error"
+                                onClick={() => handleRemoveFromFolder(app.id)}
+                                title="Remove from Folder"
+                              >
+                                <RemoveCircleOutlineIcon />
+                              </IconButton>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       ))}

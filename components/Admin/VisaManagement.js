@@ -41,6 +41,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import GetAppIcon from '@mui/icons-material/GetApp';
+import FolderIcon from '@mui/icons-material/Folder';
 import { collection, getDocs, doc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import * as XLSX from 'xlsx';
@@ -103,10 +104,12 @@ function VisaManagement() {
   const [teamViewDialog, setTeamViewDialog] = useState(false);
   const [teamSearch, setTeamSearch] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [folders, setFolders] = useState([]);
 
   // Fetch visa applications from Firestore
   useEffect(() => {
     fetchApplications();
+    fetchFolders();
   }, []);
 
   const fetchApplications = async () => {
@@ -131,6 +134,25 @@ function VisaManagement() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchFolders = async () => {
+    try {
+      const foldersSnapshot = await getDocs(collection(db, 'visaFolders'));
+      const foldersData = foldersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setFolders(foldersData);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+    }
+  };
+
+  // Get folder name for an application
+  const getFolderName = (applicationId) => {
+    const folder = folders.find(f => f.applicationIds?.includes(applicationId));
+    return folder ? folder.name : null;
   };
 
   // Filter applications
@@ -510,6 +532,7 @@ function VisaManagement() {
                 <TableCell sx={{ fontWeight: 700 }}>Applicant</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Team/Club</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Position</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Folder</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Submitted</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
@@ -539,6 +562,22 @@ function VisaManagement() {
                   <TableCell>{app.teamName || '-'}</TableCell>
                   <TableCell>
                     <Chip label={app.position || '-'} size="small" />
+                  </TableCell>
+                  <TableCell>
+                    {getFolderName(app.id) ? (
+                      <Chip 
+                        label={getFolderName(app.id)} 
+                        size="small" 
+                        icon={<FolderIcon />}
+                        sx={{ 
+                          background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                          color: '#fff',
+                          fontWeight: 600,
+                        }}
+                      />
+                    ) : (
+                      <Typography variant="caption" sx={{ opacity: 0.5 }}>-</Typography>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Chip 
@@ -802,6 +841,7 @@ function VisaManagement() {
                     <TableCell sx={{ fontWeight: 700 }}>Full Name</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Team/Club</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Position</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Folder</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Submitted</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
@@ -872,6 +912,22 @@ function VisaManagement() {
                               fontWeight: 600,
                             }}
                           />
+                        </TableCell>
+                        <TableCell>
+                          {getFolderName(app.id) ? (
+                            <Chip 
+                              label={getFolderName(app.id)} 
+                              size="small" 
+                              icon={<FolderIcon />}
+                              sx={{ 
+                                background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                                color: '#fff',
+                                fontWeight: 600,
+                              }}
+                            />
+                          ) : (
+                            <Typography variant="caption" sx={{ opacity: 0.5 }}>-</Typography>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Chip 
