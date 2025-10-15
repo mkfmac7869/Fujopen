@@ -43,8 +43,8 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -511,7 +511,7 @@ function TransportationManagement() {
     });
     
     // Add table
-    doc.autoTable({
+    autoTable(doc, {
       startY: 60,
       head: [['Type', 'Arr Flight', 'Arr Airport', 'Arr Date', 'Arr Time', 'Dep Flight', 'Dep Airport', 'Dep Date', 'Dep Time', 'Status']],
       body: tableData,
