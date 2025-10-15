@@ -1062,25 +1062,68 @@ function TransportationManagement() {
                     startIcon={<DownloadIcon />}
                     onClick={() => {
                       const refereeRequests = requests.filter(req => req.position?.toLowerCase() === 'referee');
-                      const exportData = refereeRequests.map(req => ({
-                        'Full Name': req.fullName || req.teamName || 'N/A',
-                        'Position': req.position || 'N/A',
-                        'User Email': req.userEmail || 'N/A',
-                        'Phone Number': req.phoneNumber || 'N/A',
-                        'Arrival Flight': req.arrival?.flightNumber || 'N/A',
-                        'Arrival Airport': req.arrival?.airport || 'N/A',
-                        'Arrival Terminal': req.arrival?.terminal || 'N/A',
-                        'Arrival Date': req.arrival?.date || 'N/A',
-                        'Arrival Time': req.arrival?.time || 'N/A',
-                        'Departure Flight': req.departure?.flightNumber || 'N/A',
-                        'Departure Airport': req.departure?.airport || 'N/A',
-                        'Departure Terminal': req.departure?.terminal || 'N/A',
-                        'Departure Date': req.departure?.date || 'N/A',
-                        'Departure Time': req.departure?.time || 'N/A',
-                        'Team Members': req.arrival?.teamMembers || 0,
-                        'Status': req.status || 'pending',
-                        'Submitted': req.submittedDate ? new Date(req.submittedDate).toLocaleString() : 'N/A',
-                      }));
+                      const exportData = [];
+                      
+                      refereeRequests.forEach(req => {
+                        const baseInfo = {
+                          'Full Name': req.fullName || req.teamName || 'N/A',
+                          'Position': req.position || 'N/A',
+                          'User Email': req.userEmail || 'N/A',
+                          'Phone Number': req.phoneNumber || 'N/A',
+                          'Status': req.status || 'pending',
+                          'Submitted': req.submittedDate ? new Date(req.submittedDate).toLocaleString() : 'N/A',
+                        };
+
+                        if (isNewFormat(req)) {
+                          // New format: Create separate rows for each arrival/departure
+                          const maxRequests = Math.max(
+                            req.arrivalRequests?.length || 0,
+                            req.departureRequests?.length || 0
+                          );
+
+                          for (let i = 0; i < maxRequests; i++) {
+                            const arrival = req.arrivalRequests?.[i];
+                            const departure = req.departureRequests?.[i];
+
+                            exportData.push({
+                              ...baseInfo,
+                              'Request Type': maxRequests > 1 ? `Multi-Request (${i + 1}/${maxRequests})` : 'Single',
+                              'Arrival Flight': arrival?.flightNumber || 'N/A',
+                              'Arrival Airport': arrival?.airport || 'N/A',
+                              'Arrival Terminal': arrival?.terminal || 'N/A',
+                              'Arrival Date': arrival?.date || 'N/A',
+                              'Arrival Time': arrival?.time || 'N/A',
+                              'Arrival Team Members': arrival?.teamMembers || 0,
+                              'Departure Flight': departure?.flightNumber || 'N/A',
+                              'Departure Airport': departure?.airport || 'N/A',
+                              'Departure Terminal': departure?.terminal || 'N/A',
+                              'Departure Date': departure?.date || 'N/A',
+                              'Departure Time': departure?.time || 'N/A',
+                              'Departure Team Members': departure?.teamMembers || 0,
+                              'Total Team Members': req.totalTeamMembers || 0,
+                            });
+                          }
+                        } else {
+                          // Old format: Single row
+                          exportData.push({
+                            ...baseInfo,
+                            'Request Type': 'Single',
+                            'Arrival Flight': req.arrival?.flightNumber || 'N/A',
+                            'Arrival Airport': req.arrival?.airport || 'N/A',
+                            'Arrival Terminal': req.arrival?.terminal || 'N/A',
+                            'Arrival Date': req.arrival?.date || 'N/A',
+                            'Arrival Time': req.arrival?.time || 'N/A',
+                            'Arrival Team Members': req.arrival?.teamMembers || 0,
+                            'Departure Flight': req.departure?.flightNumber || 'N/A',
+                            'Departure Airport': req.departure?.airport || 'N/A',
+                            'Departure Terminal': req.departure?.terminal || 'N/A',
+                            'Departure Date': req.departure?.date || 'N/A',
+                            'Departure Time': req.departure?.time || 'N/A',
+                            'Departure Team Members': req.departure?.teamMembers || 0,
+                            'Total Team Members': req.arrival?.teamMembers || 0,
+                          });
+                        }
+                      });
                       
                       const ws = XLSX.utils.json_to_sheet(exportData);
                       const wb = XLSX.utils.book_new();
