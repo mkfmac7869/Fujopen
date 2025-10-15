@@ -507,50 +507,75 @@ function TransportationForm({ onSuccess }) {
 
                 {/* Individual Hotels */}
                 <Grid container spacing={2}>
-                  {booking.individualBookings && booking.individualBookings.map((hotel, hotelIndex) => (
+                  {booking.individualBookings && booking.individualBookings.map((hotel, hotelIndex) => {
+                    // Get individual hotel confirmation number
+                    const hotelConfirmation = booking.confirmationNumbers?.[hotel.hotelId] || 'Pending';
+                    
+                    return (
                     <Grid item xs={12} md={6} key={hotelIndex}>
                       <Card sx={{ 
                         height: '100%',
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7))',
-                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        background: '#ffffff',
+                        border: '2px solid rgba(16, 185, 129, 0.3)',
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          boxShadow: '0 8px 24px rgba(16, 185, 129, 0.2)',
+                          boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                           transform: 'translateY(-4px)',
+                          borderColor: 'rgba(16, 185, 129, 0.5)',
                         }
                       }}>
                         <CardContent>
                           {/* Hotel Name */}
-                          <Box sx={{ display: 'flex', alignItems: 'start', gap: 1.5, mb: 2 }}>
-                            <HotelIcon sx={{ fontSize: 28, color: 'success.main', mt: 0.5 }} />
+                          <Box sx={{ display: 'flex', alignItems: 'start', gap: 1.5, mb: 1.5 }}>
+                            <HotelIcon sx={{ fontSize: 32, color: 'success.main', mt: 0.5 }} />
                             <Box sx={{ flex: 1 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, lineHeight: 1.3 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, lineHeight: 1.3, color: '#1e293b' }}>
                                 {hotel.hotelName}
                               </Typography>
-                              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>
                                 {hotel.hotelLocation || 'Fujairah, UAE'}
                               </Typography>
                             </Box>
                           </Box>
 
-                          <Divider sx={{ my: 1.5 }} />
+                          {/* Confirmation Number */}
+                          <Box sx={{ 
+                            mb: 2, 
+                            p: 1.5, 
+                            background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                            borderRadius: 1.5,
+                            border: '1px solid #86efac'
+                          }}>
+                            <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, display: 'block', mb: 0.5 }}>
+                              CONFIRMATION NUMBER
+                            </Typography>
+                            <Typography variant="h6" sx={{ 
+                              fontFamily: 'monospace', 
+                              fontWeight: 800, 
+                              color: '#15803d',
+                              letterSpacing: '0.1em'
+                            }}>
+                              {hotelConfirmation}
+                            </Typography>
+                          </Box>
 
                           {/* Hotel Details */}
                           <Grid container spacing={1.5}>
                             <Grid item xs={6}>
                               <Box sx={{ 
                                 p: 1.5, 
-                                background: 'rgba(16, 185, 129, 0.08)', 
+                                background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', 
                                 borderRadius: 1.5,
-                                textAlign: 'center'
+                                textAlign: 'center',
+                                border: '1px solid #bbf7d0'
                               }}>
-                                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, display: 'block', mb: 0.5 }}>
                                   Capacity
                                 </Typography>
-                                <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main' }}>
+                                <Typography variant="h4" sx={{ fontWeight: 900, color: '#15803d' }}>
                                   {hotel.guests?.length || 0}
                                 </Typography>
-                                <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600 }}>
                                   guests
                                 </Typography>
                               </Box>
@@ -558,17 +583,18 @@ function TransportationForm({ onSuccess }) {
                             <Grid item xs={6}>
                               <Box sx={{ 
                                 p: 1.5, 
-                                background: 'rgba(99, 102, 241, 0.08)', 
+                                background: 'linear-gradient(135deg, #ede9fe, #ddd6fe)', 
                                 borderRadius: 1.5,
-                                textAlign: 'center'
+                                textAlign: 'center',
+                                border: '1px solid #c4b5fd'
                               }}>
-                                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ color: '#5b21b6', fontWeight: 700, display: 'block', mb: 0.5 }}>
                                   Rooms
                                 </Typography>
-                                <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                                <Typography variant="h4" sx={{ fontWeight: 900, color: '#6d28d9' }}>
                                   {hotel.numberOfRooms || 1}
                                 </Typography>
-                                <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                <Typography variant="caption" sx={{ color: '#5b21b6', fontWeight: 600 }}>
                                   room{hotel.numberOfRooms > 1 ? 's' : ''}
                                 </Typography>
                               </Box>
@@ -576,16 +602,17 @@ function TransportationForm({ onSuccess }) {
                             <Grid item xs={12}>
                               <Box sx={{ 
                                 p: 1.5, 
-                                background: 'rgba(251, 191, 36, 0.08)', 
+                                background: 'linear-gradient(135deg, #fef3c7, #fde68a)', 
                                 borderRadius: 1.5,
+                                border: '1px solid #fcd34d'
                               }}>
-                                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ color: '#78350f', fontWeight: 700, display: 'block', mb: 0.5 }}>
                                   Check-in / Check-out
                                 </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: '#92400e' }}>
                                   {hotel.checkInDate ? new Date(hotel.checkInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'} → {hotel.checkOutDate ? new Date(hotel.checkOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}
                                 </Typography>
-                                <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                <Typography variant="caption" sx={{ color: '#78350f', fontWeight: 600 }}>
                                   {hotel.numberOfNights || 0} night{hotel.numberOfNights > 1 ? 's' : ''}
                                 </Typography>
                               </Box>
@@ -594,7 +621,8 @@ function TransportationForm({ onSuccess }) {
                         </CardContent>
                       </Card>
                     </Grid>
-                  ))}
+                    );
+                  })}
                 </Grid>
               </Box>
             );
