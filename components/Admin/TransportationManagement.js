@@ -1240,78 +1240,176 @@ function TransportationManagement() {
               </Grid>
 
               {/* Arrival Details */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <Card sx={{ p: 2, background: 'rgba(76, 175, 80, 0.1)', borderLeft: '4px solid #4caf50' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <FlightLandIcon color="success" sx={{ mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Arrival Details</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Arrival Details {isNewFormat(selectedRequest) && `(${selectedRequest.arrivalRequests?.length || 0} requests)`}
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight Number:</Typography>
-                      <Typography variant="body2">{selectedRequest.arrival.flightNumber}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
-                      <Typography variant="body2">{selectedRequest.arrival.airport}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
-                      <Typography variant="body2">{selectedRequest.arrival.terminal}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
-                      <Typography variant="body2">
-                        {new Date(selectedRequest.arrival.date).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
-                      <Typography variant="body2">{selectedRequest.arrival.time}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
-                      <Typography variant="body2">{selectedRequest.arrival.teamMembers} persons</Typography>
-                    </Box>
-                  </Box>
+                  
+                  {isNewFormat(selectedRequest) ? (
+                    // Multi-request format
+                    selectedRequest.arrivalRequests && selectedRequest.arrivalRequests.length > 0 ? (
+                      selectedRequest.arrivalRequests.map((arrival, index) => (
+                        <Box key={index} sx={{ mb: index < selectedRequest.arrivalRequests.length - 1 ? 2 : 0, pb: index < selectedRequest.arrivalRequests.length - 1 ? 2 : 0, borderBottom: index < selectedRequest.arrivalRequests.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'success.dark' }}>
+                            Arrival #{index + 1}
+                          </Typography>
+                          <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight:</Typography>
+                              <Typography variant="body2">{arrival.flightNumber}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
+                              <Typography variant="body2">{arrival.airport}</Typography>
+                            </Grid>
+                            <Grid item xs={4}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
+                              <Typography variant="body2">{arrival.terminal}</Typography>
+                            </Grid>
+                            <Grid item xs={4}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
+                              <Typography variant="body2">{new Date(arrival.date).toLocaleDateString()}</Typography>
+                            </Grid>
+                            <Grid item xs={4}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
+                              <Typography variant="body2">{arrival.time}</Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
+                              <Typography variant="body2">{arrival.teamMembers} persons</Typography>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ opacity: 0.6 }}>No arrival requests</Typography>
+                    )
+                  ) : (
+                    // Old format
+                    selectedRequest.arrival ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight Number:</Typography>
+                          <Typography variant="body2">{selectedRequest.arrival.flightNumber}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
+                          <Typography variant="body2">{selectedRequest.arrival.airport}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
+                          <Typography variant="body2">{selectedRequest.arrival.terminal}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
+                          <Typography variant="body2">
+                            {new Date(selectedRequest.arrival.date).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
+                          <Typography variant="body2">{selectedRequest.arrival.time}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
+                          <Typography variant="body2">{selectedRequest.arrival.teamMembers} persons</Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ opacity: 0.6 }}>No arrival information</Typography>
+                    )
+                  )}
                 </Card>
               </Grid>
 
               {/* Departure Details */}
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <Card sx={{ p: 2, background: 'rgba(33, 150, 243, 0.1)', borderLeft: '4px solid #2196f3' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <FlightTakeoffIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Departure Details</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Departure Details {isNewFormat(selectedRequest) && `(${selectedRequest.departureRequests?.length || 0} requests)`}
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight Number:</Typography>
-                      <Typography variant="body2">{selectedRequest.departure.flightNumber}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
-                      <Typography variant="body2">{selectedRequest.departure.airport}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
-                      <Typography variant="body2">{selectedRequest.departure.terminal}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
-                      <Typography variant="body2">
-                        {new Date(selectedRequest.departure.date).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
-                      <Typography variant="body2">{selectedRequest.departure.time}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
-                      <Typography variant="body2">{selectedRequest.departure.teamMembers} persons</Typography>
-                    </Box>
-                  </Box>
+                  
+                  {isNewFormat(selectedRequest) ? (
+                    // Multi-request format
+                    selectedRequest.departureRequests && selectedRequest.departureRequests.length > 0 ? (
+                      selectedRequest.departureRequests.map((departure, index) => (
+                        <Box key={index} sx={{ mb: index < selectedRequest.departureRequests.length - 1 ? 2 : 0, pb: index < selectedRequest.departureRequests.length - 1 ? 2 : 0, borderBottom: index < selectedRequest.departureRequests.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'primary.dark' }}>
+                            Departure #{index + 1}
+                          </Typography>
+                          <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight:</Typography>
+                              <Typography variant="body2">{departure.flightNumber}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
+                              <Typography variant="body2">{departure.airport}</Typography>
+                            </Grid>
+                            <Grid item xs={4}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
+                              <Typography variant="body2">{departure.terminal}</Typography>
+                            </Grid>
+                            <Grid item xs={4}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
+                              <Typography variant="body2">{new Date(departure.date).toLocaleDateString()}</Typography>
+                            </Grid>
+                            <Grid item xs={4}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
+                              <Typography variant="body2">{departure.time}</Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
+                              <Typography variant="body2">{departure.teamMembers} persons</Typography>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ opacity: 0.6 }}>No departure requests</Typography>
+                    )
+                  ) : (
+                    // Old format
+                    selectedRequest.departure ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Flight Number:</Typography>
+                          <Typography variant="body2">{selectedRequest.departure.flightNumber}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Airport:</Typography>
+                          <Typography variant="body2">{selectedRequest.departure.airport}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Terminal:</Typography>
+                          <Typography variant="body2">{selectedRequest.departure.terminal}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Date:</Typography>
+                          <Typography variant="body2">
+                            {new Date(selectedRequest.departure.date).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Time:</Typography>
+                          <Typography variant="body2">{selectedRequest.departure.time}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>Team Members:</Typography>
+                          <Typography variant="body2">{selectedRequest.departure.teamMembers} persons</Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ opacity: 0.6 }}>No departure information</Typography>
+                    )
+                  )}
                 </Card>
               </Grid>
             </Grid>
