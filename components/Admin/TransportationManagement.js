@@ -579,6 +579,95 @@ function TransportationManagement() {
     doc.save(`Transportation_${teamFileName}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
+  // Export Agenda to Excel
+  const exportAgendaToExcel = () => {
+    const events = getCalendarEvents();
+    
+    // Sort events by date and time
+    events.sort((a, b) => a.start - b.start);
+    
+    const exportData = events.map(event => ({
+      'Date': event.start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+      'Time': event.start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      'Type': event.resource.type === 'arrival' ? 'ARRIVAL' : 'DEPARTURE',
+      'Flight Number': event.resource.specificRequest?.flightNumber || event.resource.request.arrival?.flightNumber || event.resource.request.departure?.flightNumber || 'N/A',
+      'Airport': event.resource.specificRequest?.airport || event.resource.request.arrival?.airport || event.resource.request.departure?.airport || 'N/A',
+      'Terminal': event.resource.specificRequest?.terminal || event.resource.request.arrival?.terminal || event.resource.request.departure?.terminal || 'N/A',
+      'Team Members': event.resource.specificRequest?.teamMembers || event.resource.request.arrival?.teamMembers || event.resource.request.departure?.teamMembers || 0,
+      'Team Name': event.resource.request.teamName || event.resource.request.fullName || event.resource.request.userEmail,
+      'Status': statusConfig[event.resource.request.status]?.label || event.resource.request.status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transportation Agenda');
+    
+    const maxWidth = 30;
+    const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
+    ws['!cols'] = wscols;
+    
+    XLSX.writeFile(wb, `Transportation_Agenda_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  // Export Agenda to PDF
+  const exportAgendaToPDF = () => {
+    const events = getCalendarEvents();
+    
+    // Sort events by date and time
+    events.sort((a, b) => a.start - b.start);
+    
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transportation Agenda Report', 14, 20);
+    
+    // Report Info
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Events: ${events.length}`, 14, 30);
+    doc.text(`Period: ${events.length > 0 ? events[0].start.toLocaleDateString() : 'N/A'} - ${events.length > 0 ? events[events.length - 1].start.toLocaleDateString() : 'N/A'}`, 14, 37);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 44);
+    
+    // Prepare table data
+    const tableData = events.map(event => [
+      event.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      event.start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      event.resource.type === 'arrival' ? 'ARRIVAL' : 'DEPARTURE',
+      event.resource.specificRequest?.flightNumber || event.resource.request.arrival?.flightNumber || event.resource.request.departure?.flightNumber || 'N/A',
+      (event.resource.specificRequest?.airport || event.resource.request.arrival?.airport || event.resource.request.departure?.airport || 'N/A').substring(0, 25),
+      event.resource.specificRequest?.terminal || event.resource.request.arrival?.terminal || event.resource.request.departure?.terminal || 'N/A',
+      event.resource.specificRequest?.teamMembers || event.resource.request.arrival?.teamMembers || event.resource.request.departure?.teamMembers || 0,
+      (event.resource.request.teamName || event.resource.request.fullName || event.resource.request.userEmail).substring(0, 25),
+      event.resource.request.status,
+    ]);
+    
+    // Add table
+    autoTable(doc, {
+      startY: 55,
+      head: [['Date', 'Time', 'Type', 'Flight', 'Airport', 'Terminal', 'Pax', 'Team', 'Status']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 22 },  // Date
+        1: { cellWidth: 18 },  // Time
+        2: { cellWidth: 22 },  // Type
+        3: { cellWidth: 20 },  // Flight
+        4: { cellWidth: 35 },  // Airport
+        5: { cellWidth: 18 },  // Terminal
+        6: { cellWidth: 12 },  // Pax
+        7: { cellWidth: 30 },  // Team
+        8: { cellWidth: 18 },  // Status
+      },
+    });
+    
+    doc.save(`Transportation_Agenda_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   const handleExportExcel = () => {
     const exportData = [];
     
@@ -1515,12 +1604,45 @@ function TransportationManagement() {
           {viewMode === 'calendar' && (
             <Card className={classes.tableCard} sx={{ mt: 3, p: 3, mb: 5 }}>
               <Box sx={{ mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                  📅 Transportation Calendar
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  Click on any event to view full details
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                      📅 Transportation Calendar
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                      Click on any event to view full details
+                    </Typography>
+                  </Box>
+                  
+                  {/* Export Agenda Buttons */}
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => exportAgendaToExcel()}
+                      sx={{ 
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        '&:hover': { background: 'linear-gradient(135deg, #059669, #047857)' }
+                      }}
+                    >
+                      Export Agenda to Excel
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<PictureAsPdfIcon />}
+                      onClick={() => exportAgendaToPDF()}
+                      sx={{ 
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        '&:hover': { background: 'linear-gradient(135deg, #dc2626, #b91c1c)' }
+                      }}
+                    >
+                      Export Agenda to PDF
+                    </Button>
+                  </Box>
+                </Box>
+                
                 <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Chip
                     icon={<FlightLandIcon />}
