@@ -121,6 +121,24 @@ service cloud.firestore {
       // Only admins can delete
       allow delete: if isAdmin();
     }
+    
+    // Certificates Collection
+    match /certificates/{certificateId} {
+      // Allow read for all authenticated users
+      allow read: if isAuthenticated();
+      
+      // Only admins can create/update/delete
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Certificate Settings Collection
+    match /certificateSettings/{settingId} {
+      // Allow read for all authenticated users
+      allow read: if isAuthenticated();
+      
+      // Only admins can update
+      allow create, update, delete: if isAdmin();
+    }
   }
 }
 ```
@@ -173,6 +191,12 @@ service firebase.storage {
     match /profilePhotos/{userId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // Certificate templates (admin uploads only)
+    match /certificateTemplates/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
   }
 }
