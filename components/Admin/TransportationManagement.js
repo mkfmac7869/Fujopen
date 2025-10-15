@@ -283,36 +283,88 @@ function TransportationManagement() {
 
     // Location filter
     if (filters.locations.length > 0) {
-      filtered = filtered.filter(req => 
-        filters.locations.includes(req.arrival.airport) || 
-        filters.locations.includes(req.departure.airport)
-      );
+      filtered = filtered.filter(req => {
+        if (isNewFormat(req)) {
+          // Check all arrival and departure requests
+          const hasMatchingArrival = req.arrivalRequests?.some(arr => 
+            filters.locations.includes(arr.airport)
+          );
+          const hasMatchingDeparture = req.departureRequests?.some(dep => 
+            filters.locations.includes(dep.airport)
+          );
+          return hasMatchingArrival || hasMatchingDeparture;
+        } else {
+          // Old format
+          return filters.locations.includes(req.arrival?.airport) || 
+                 filters.locations.includes(req.departure?.airport);
+        }
+      });
     }
 
     // Date range filter
     if (filters.dateFrom) {
-      filtered = filtered.filter(req => 
-        new Date(req.arrival.date) >= new Date(filters.dateFrom) ||
-        new Date(req.departure.date) >= new Date(filters.dateFrom)
-      );
+      filtered = filtered.filter(req => {
+        if (isNewFormat(req)) {
+          const hasMatchingArrival = req.arrivalRequests?.some(arr => 
+            new Date(arr.date) >= new Date(filters.dateFrom)
+          );
+          const hasMatchingDeparture = req.departureRequests?.some(dep => 
+            new Date(dep.date) >= new Date(filters.dateFrom)
+          );
+          return hasMatchingArrival || hasMatchingDeparture;
+        } else {
+          return new Date(req.arrival?.date) >= new Date(filters.dateFrom) ||
+                 new Date(req.departure?.date) >= new Date(filters.dateFrom);
+        }
+      });
     }
     if (filters.dateTo) {
-      filtered = filtered.filter(req => 
-        new Date(req.arrival.date) <= new Date(filters.dateTo) ||
-        new Date(req.departure.date) <= new Date(filters.dateTo)
-      );
+      filtered = filtered.filter(req => {
+        if (isNewFormat(req)) {
+          const hasMatchingArrival = req.arrivalRequests?.some(arr => 
+            new Date(arr.date) <= new Date(filters.dateTo)
+          );
+          const hasMatchingDeparture = req.departureRequests?.some(dep => 
+            new Date(dep.date) <= new Date(filters.dateTo)
+          );
+          return hasMatchingArrival || hasMatchingDeparture;
+        } else {
+          return new Date(req.arrival?.date) <= new Date(filters.dateTo) ||
+                 new Date(req.departure?.date) <= new Date(filters.dateTo);
+        }
+      });
     }
 
     // Time range filter
     if (filters.timeFrom) {
-      filtered = filtered.filter(req => 
-        req.arrival.time >= filters.timeFrom || req.departure.time >= filters.timeFrom
-      );
+      filtered = filtered.filter(req => {
+        if (isNewFormat(req)) {
+          const hasMatchingArrival = req.arrivalRequests?.some(arr => 
+            arr.time >= filters.timeFrom
+          );
+          const hasMatchingDeparture = req.departureRequests?.some(dep => 
+            dep.time >= filters.timeFrom
+          );
+          return hasMatchingArrival || hasMatchingDeparture;
+        } else {
+          return req.arrival?.time >= filters.timeFrom || req.departure?.time >= filters.timeFrom;
+        }
+      });
     }
     if (filters.timeTo) {
-      filtered = filtered.filter(req => 
-        req.arrival.time <= filters.timeTo || req.departure.time <= filters.timeTo
-      );
+      filtered = filtered.filter(req => {
+        if (isNewFormat(req)) {
+          const hasMatchingArrival = req.arrivalRequests?.some(arr => 
+            arr.time <= filters.timeTo
+          );
+          const hasMatchingDeparture = req.departureRequests?.some(dep => 
+            dep.time <= filters.timeTo
+          );
+          return hasMatchingArrival || hasMatchingDeparture;
+        } else {
+          return req.arrival?.time <= filters.timeTo || req.departure?.time <= filters.timeTo;
+        }
+      });
     }
 
     // Status filter
@@ -333,26 +385,68 @@ function TransportationManagement() {
   };
 
   const handleExportExcel = () => {
-    const exportData = filteredRequests.map(req => ({
-      'Request ID': req.id,
-      'User Email': req.userEmail,
-      'Team Name': req.teamName || 'N/A',
-      'Phone Number': req.phoneNumber || 'N/A',
-      'Status': statusConfig[req.status]?.label || req.status,
-      'Arrival Flight': req.arrival.flightNumber,
-      'Arrival Airport': req.arrival.airport,
-      'Arrival Terminal': req.arrival.terminal || 'N/A',
-      'Arrival Date': new Date(req.arrival.date).toLocaleDateString(),
-      'Arrival Time': req.arrival.time,
-      'Arrival Team Members': req.arrival.teamMembers,
-      'Departure Flight': req.departure.flightNumber,
-      'Departure Airport': req.departure.airport,
-      'Departure Terminal': req.departure.terminal || 'N/A',
-      'Departure Date': new Date(req.departure.date).toLocaleDateString(),
-      'Departure Time': req.departure.time,
-      'Departure Team Members': req.departure.teamMembers,
-      'Submitted': new Date(req.submittedDate).toLocaleString(),
-    }));
+    const exportData = [];
+    
+    filteredRequests.forEach(req => {
+      const baseInfo = {
+        'Request ID': req.id,
+        'User Email': req.userEmail,
+        'Team Name': req.teamName || req.fullName || 'N/A',
+        'Phone Number': req.phoneNumber || 'N/A',
+        'Status': statusConfig[req.status]?.label || req.status,
+        'Submitted': new Date(req.submittedDate).toLocaleString(),
+      };
+
+      if (isNewFormat(req)) {
+        // New format: Create separate rows for each arrival/departure
+        const maxRequests = Math.max(
+          req.arrivalRequests?.length || 0,
+          req.departureRequests?.length || 0
+        );
+
+        for (let i = 0; i < maxRequests; i++) {
+          const arrival = req.arrivalRequests?.[i];
+          const departure = req.departureRequests?.[i];
+
+          exportData.push({
+            ...baseInfo,
+            'Request Type': maxRequests > 1 ? `Multi-Request (${i + 1}/${maxRequests})` : 'Single',
+            'Arrival Flight': arrival?.flightNumber || 'N/A',
+            'Arrival Airport': arrival?.airport || 'N/A',
+            'Arrival Terminal': arrival?.terminal || 'N/A',
+            'Arrival Date': arrival?.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
+            'Arrival Time': arrival?.time || 'N/A',
+            'Arrival Team Members': arrival?.teamMembers || 0,
+            'Departure Flight': departure?.flightNumber || 'N/A',
+            'Departure Airport': departure?.airport || 'N/A',
+            'Departure Terminal': departure?.terminal || 'N/A',
+            'Departure Date': departure?.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
+            'Departure Time': departure?.time || 'N/A',
+            'Departure Team Members': departure?.teamMembers || 0,
+            'Total Team Members': req.totalTeamMembers || 0,
+          });
+        }
+      } else {
+        // Old format: Single row
+        exportData.push({
+          ...baseInfo,
+          'Request Type': 'Single',
+          'Arrival Flight': req.arrival?.flightNumber || 'N/A',
+          'Arrival Airport': req.arrival?.airport || 'N/A',
+          'Arrival Terminal': req.arrival?.terminal || 'N/A',
+          'Arrival Date': req.arrival?.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
+          'Arrival Time': req.arrival?.time || 'N/A',
+          'Arrival Team Members': req.arrival?.teamMembers || 0,
+          'Departure Flight': req.departure?.flightNumber || 'N/A',
+          'Departure Airport': req.departure?.airport || 'N/A',
+          'Departure Terminal': req.departure?.terminal || 'N/A',
+          'Departure Date': req.departure?.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
+          'Departure Time': req.departure?.time || 'N/A',
+          'Departure Team Members': req.departure?.teamMembers || 0,
+          'Total Team Members': Math.max(req.arrival?.teamMembers || 0, req.departure?.teamMembers || 0),
+        });
+      }
+    });
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
@@ -373,9 +467,13 @@ function TransportationManagement() {
 
   // Handle calendar event click
   const handleSelectEvent = (event) => {
-    if (event.resource && event.resource.request) {
+    console.log('📅 Calendar event clicked:', event);
+    if (event && event.resource && event.resource.request) {
+      console.log('✅ Opening details for request:', event.resource.request.id);
       setSelectedRequest(event.resource.request);
       setDetailsDialog(true);
+    } else {
+      console.warn('⚠️ Event click but no request data:', event);
     }
   };
 
@@ -446,31 +544,84 @@ function TransportationManagement() {
     const events = [];
     filteredRequests.forEach(req => {
       try {
-        // Arrival event
-        const arrivalDate = new Date(`${req.arrival.date}T${req.arrival.time}`);
-        if (!isNaN(arrivalDate.getTime())) {
-          events.push({
-            title: `✈️ ARRIVAL: ${req.arrival.flightNumber} (${req.arrival.teamMembers} pax) - ${req.teamName || req.userEmail}`,
-            start: arrivalDate,
-            end: new Date(arrivalDate.getTime() + 60 * 60 * 1000), // 1 hour duration
-            resource: { type: 'arrival', request: req }
-          });
-        }
+        const teamName = req.teamName || req.fullName || req.userEmail;
         
-        // Departure event
-        const departureDate = new Date(`${req.departure.date}T${req.departure.time}`);
-        if (!isNaN(departureDate.getTime())) {
-          events.push({
-            title: `🛫 DEPARTURE: ${req.departure.flightNumber} (${req.departure.teamMembers} pax) - ${req.teamName || req.userEmail}`,
-            start: departureDate,
-            end: new Date(departureDate.getTime() + 60 * 60 * 1000), // 1 hour duration
-            resource: { type: 'departure', request: req }
-          });
+        if (isNewFormat(req)) {
+          // New format: Multiple requests
+          
+          // Process all arrival requests
+          if (req.arrivalRequests && Array.isArray(req.arrivalRequests)) {
+            req.arrivalRequests.forEach((arrival, index) => {
+              try {
+                const arrivalDate = new Date(`${arrival.date}T${arrival.time}`);
+                if (!isNaN(arrivalDate.getTime())) {
+                  events.push({
+                    title: `✈️ ARRIVAL ${req.arrivalRequests.length > 1 ? `#${index + 1} ` : ''}: ${arrival.flightNumber} (${arrival.teamMembers} pax) - ${teamName}`,
+                    start: arrivalDate,
+                    end: new Date(arrivalDate.getTime() + 60 * 60 * 1000), // 1 hour duration
+                    resource: { type: 'arrival', request: req, specificRequest: arrival, index }
+                  });
+                }
+              } catch (err) {
+                console.error('Error creating arrival event:', err);
+              }
+            });
+          }
+          
+          // Process all departure requests
+          if (req.departureRequests && Array.isArray(req.departureRequests)) {
+            req.departureRequests.forEach((departure, index) => {
+              try {
+                const departureDate = new Date(`${departure.date}T${departure.time}`);
+                if (!isNaN(departureDate.getTime())) {
+                  events.push({
+                    title: `🛫 DEPARTURE ${req.departureRequests.length > 1 ? `#${index + 1} ` : ''}: ${departure.flightNumber} (${departure.teamMembers} pax) - ${teamName}`,
+                    start: departureDate,
+                    end: new Date(departureDate.getTime() + 60 * 60 * 1000), // 1 hour duration
+                    resource: { type: 'departure', request: req, specificRequest: departure, index }
+                  });
+                }
+              } catch (err) {
+                console.error('Error creating departure event:', err);
+              }
+            });
+          }
+          
+        } else {
+          // Old format: Single arrival/departure
+          
+          // Arrival event
+          if (req.arrival?.date && req.arrival?.time) {
+            const arrivalDate = new Date(`${req.arrival.date}T${req.arrival.time}`);
+            if (!isNaN(arrivalDate.getTime())) {
+              events.push({
+                title: `✈️ ARRIVAL: ${req.arrival.flightNumber} (${req.arrival.teamMembers} pax) - ${teamName}`,
+                start: arrivalDate,
+                end: new Date(arrivalDate.getTime() + 60 * 60 * 1000),
+                resource: { type: 'arrival', request: req }
+              });
+            }
+          }
+          
+          // Departure event
+          if (req.departure?.date && req.departure?.time) {
+            const departureDate = new Date(`${req.departure.date}T${req.departure.time}`);
+            if (!isNaN(departureDate.getTime())) {
+              events.push({
+                title: `🛫 DEPARTURE: ${req.departure.flightNumber} (${req.departure.teamMembers} pax) - ${teamName}`,
+                start: departureDate,
+                end: new Date(departureDate.getTime() + 60 * 60 * 1000),
+                resource: { type: 'departure', request: req }
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Error creating calendar event:', error);
       }
     });
+    
+    console.log('📅 Generated calendar events:', events.length);
     return events;
   };
 
@@ -1141,6 +1292,9 @@ function TransportationManagement() {
                   endAccessor="end"
                   style={{ height: '100%' }}
                   onSelectEvent={handleSelectEvent}
+                  onShowMore={(events, date) => {
+                    console.log('📅 Show more clicked for date:', date, 'Events:', events.length);
+                  }}
                   eventPropGetter={(event) => ({
                     style: {
                       backgroundColor: event.resource.type === 'arrival' ? '#4caf50' : '#2196f3',
@@ -1150,13 +1304,16 @@ function TransportationManagement() {
                       fontSize: '0.85rem',
                       fontWeight: 600,
                       padding: '4px 8px',
+                      cursor: 'pointer',
                     }
                   })}
                   views={['month', 'week', 'day', 'agenda']}
                   defaultView="month"
                   popup
+                  popupOffset={{ x: 0, y: 10 }}
                   showMultiDayTimes
                   tooltipAccessor={(event) => event.title}
+                  selectable
                 />
               </Box>
             </Card>
