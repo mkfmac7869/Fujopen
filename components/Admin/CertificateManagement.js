@@ -170,6 +170,8 @@ function CertificateManagement() {
     const file = event.target.files[0];
     if (!file) return;
 
+    console.log('📤 Uploading template file:', file.name, 'Type:', file.type, 'Size:', file.size);
+
     if (!file.type.startsWith('image/')) {
       setError('Please upload an image file (PNG, JPG)');
       return;
@@ -178,24 +180,44 @@ function CertificateManagement() {
     try {
       setUploading(true);
       setError('');
+      setSuccess('');
 
+      console.log('1️⃣ Creating storage reference...');
       // Upload to Firebase Storage
       const storageRef = ref(storage, `certificateTemplates/template_${Date.now()}.${file.name.split('.').pop()}`);
-      await uploadBytes(storageRef, file);
+      
+      console.log('2️⃣ Uploading file to Firebase Storage...');
+      const uploadResult = await uploadBytes(storageRef, file);
+      console.log('✅ Upload result:', uploadResult);
+      
+      console.log('3️⃣ Getting download URL...');
       const url = await getDownloadURL(storageRef);
+      console.log('✅ Download URL:', url);
 
+      console.log('4️⃣ Saving URL to Firestore...');
       // Save URL to Firestore settings
       const settingsRef = doc(db, 'certificateSettings', 'default');
       await setDoc(settingsRef, {
         templateUrl: url,
         updatedAt: new Date().toISOString(),
       });
+      console.log('✅ URL saved to Firestore');
 
       setTemplateUrl(url);
       setSuccess('✅ Certificate template uploaded successfully!');
+      console.log('🎉 Template upload complete!');
     } catch (error) {
-      console.error('Error uploading template:', error);
-      setError('Failed to upload template');
+      console.error('❌ Error uploading template:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      if (error.code === 'storage/unauthorized') {
+        setError('Failed to upload template: Storage permission denied. Please check Firebase Storage rules.');
+      } else if (error.code === 'permission-denied') {
+        setError('Failed to upload template: Firestore permission denied. Please check Firestore rules.');
+      } else {
+        setError(`Failed to upload template: ${error.message}`);
+      }
     } finally {
       setUploading(false);
     }
