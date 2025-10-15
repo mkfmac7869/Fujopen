@@ -5,7 +5,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import CssBaseline from '@mui/material/CssBaseline';
 import HomeLayout from 'components/Layouts/Home';
 import CertificateGenerator from 'components/Certificates/CertificateGenerator';
-import ProtectedRoute from 'components/Auth/ProtectedRoute';
+import ProtectedRoute from 'components/Utils/ProtectedRoute';
 import singleMenu from 'components/Header/data/single';
 
 function CertificatesPage() {

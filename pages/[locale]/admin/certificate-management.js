@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import CssBaseline from '@mui/material/CssBaseline';
 import HomeLayout from 'components/Layouts/Home';
-import AdminRoute from 'components/Auth/AdminRoute';
+import AdminRoute from 'components/Admin/AdminRoute';
 import CertificateManagement from 'components/Admin/CertificateManagement';
 import singleMenu from 'components/Header/data/single';
 
