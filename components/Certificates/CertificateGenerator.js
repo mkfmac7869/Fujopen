@@ -18,7 +18,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { jsPDF } from 'jspdf';
+import { PDFDocument, rgb } from 'pdf-lib';
 import { useAuth } from '../../lib/AuthContext';
 import Title from '../Title';
 
@@ -104,88 +104,71 @@ function CertificateGenerator() {
     }
   };
 
-  const generateCertificate = () => {
+  const generateCertificate = async () => {
     if (!certificateData) return;
 
     try {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
+      console.log('🎯 Starting certificate generation...');
+      console.log('📄 Participant:', certificateData.fullName);
+      console.log('🎫 License:', certificateData.licenseNumber);
+
+      // Load the template PDF
+      console.log('📥 Loading PDF template from public folder...');
+      const templateUrl = '/images/ai/2-Certificates.pdf';
+      const existingPdfBytes = await fetch(templateUrl).then(res => res.arrayBuffer());
+      
+      console.log('✅ Template loaded, size:', existingPdfBytes.byteLength, 'bytes');
+
+      // Load the PDF document
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      const { width, height } = firstPage.getSize();
+
+      console.log('📏 PDF dimensions:', width, 'x', height);
+
+      // Add participant name (adjust X, Y coordinates as needed)
+      firstPage.drawText(certificateData.fullName.toUpperCase(), {
+        x: width / 2 - (certificateData.fullName.length * 8), // Center approximately
+        y: height / 2 + 20, // Adjust vertical position
+        size: 36,
+        color: rgb(0.117, 0.227, 0.541), // Blue color (#1e3a8a)
       });
 
-      // If template exists, try to add it as background
-      // For now, create a simple certificate
+      // Add team/country (smaller, below name)
+      if (certificateData.teamOrCountry) {
+        firstPage.drawText(certificateData.teamOrCountry, {
+          x: width / 2 - (certificateData.teamOrCountry.length * 5), // Center approximately
+          y: height / 2 - 30, // Below the name
+          size: 20,
+          color: rgb(0.4, 0.4, 0.4), // Gray color
+        });
+      }
+
+      // Add license number (bottom)
+      firstPage.drawText(`License: ${certificateData.licenseNumber}`, {
+        x: width / 2 - 80,
+        y: 100, // Near bottom
+        size: 14,
+        color: rgb(0.117, 0.227, 0.541), // Blue color
+      });
+
+      // Save the modified PDF
+      const pdfBytes = await pdfDoc.save();
       
-      // Certificate border
-      doc.setDrawColor(30, 58, 138);
-      doc.setLineWidth(2);
-      doc.rect(10, 10, 277, 190);
+      // Download the PDF
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Certificate_${certificateData.licenseNumber}_${certificateData.fullName.replace(/\s/g, '_')}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
       
-      doc.setLineWidth(0.5);
-      doc.rect(15, 15, 267, 180);
-
-      // Header
-      doc.setFontSize(32);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 58, 138);
-      doc.text('CERTIFICATE OF PARTICIPATION', 148.5, 40, { align: 'center' });
-
-      // Subtitle
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('Fujairah Open International Taekwondo Championships 2026', 148.5, 55, { align: 'center' });
-
-      // Presented to
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('This certificate is proudly presented to', 148.5, 80, { align: 'center' });
-
-      // Name
-      doc.setFontSize(28);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 58, 138);
-      doc.text(certificateData.fullName, 148.5, 100, { align: 'center' });
-
-      // Team/Country
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(100, 100, 100);
-      doc.text(certificateData.teamOrCountry || '', 148.5, 115, { align: 'center' });
-
-      // Recognition text
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text('For outstanding participation in the championship', 148.5, 135, { align: 'center' });
-
-      // License Number
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 58, 138);
-      doc.text(`Global License Number: ${certificateData.licenseNumber}`, 148.5, 150, { align: 'center' });
-
-      // Date
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 148.5, 165, { align: 'center' });
-
-      // Signature line (placeholder)
-      doc.setLineWidth(0.5);
-      doc.line(40, 180, 100, 180);
-      doc.setFontSize(9);
-      doc.text('Organizing Committee', 70, 187, { align: 'center' });
-
-      // Save
-      const fileName = `Certificate_${certificateData.licenseNumber}_${certificateData.fullName.replace(/\s/g, '_')}.pdf`;
-      doc.save(fileName);
-      
-      console.log('✅ Certificate downloaded:', fileName);
+      console.log('✅ Certificate downloaded successfully!');
     } catch (error) {
-      console.error('Error generating certificate:', error);
-      setError('Failed to generate certificate. Please try again.');
+      console.error('❌ Error generating certificate:', error);
+      setError(`Failed to generate certificate: ${error.message}`);
     }
   };
 
