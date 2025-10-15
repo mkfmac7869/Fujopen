@@ -43,7 +43,10 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
@@ -382,6 +385,145 @@ function TransportationManagement() {
         ? prev.locations.filter(loc => loc !== airport)
         : [...prev.locations, airport]
     }));
+  };
+
+  // Export specific team to Excel
+  const exportTeamToExcel = (team) => {
+    const exportData = [];
+    
+    team.requests.forEach(req => {
+      const baseInfo = {
+        'Team Name': team.teamName || team.email,
+        'User Email': team.email,
+        'Phone Number': req.phoneNumber || 'N/A',
+        'Status': statusConfig[req.status]?.label || req.status,
+        'Submitted': new Date(req.submittedDate).toLocaleString(),
+      };
+
+      if (isNewFormat(req)) {
+        const maxRequests = Math.max(
+          req.arrivalRequests?.length || 0,
+          req.departureRequests?.length || 0
+        );
+
+        for (let i = 0; i < maxRequests; i++) {
+          const arrival = req.arrivalRequests?.[i];
+          const departure = req.departureRequests?.[i];
+
+          exportData.push({
+            ...baseInfo,
+            'Request Type': maxRequests > 1 ? `Multi (${i + 1}/${maxRequests})` : 'Single',
+            'Arrival Flight': arrival?.flightNumber || 'N/A',
+            'Arrival Airport': arrival?.airport || 'N/A',
+            'Arrival Date': arrival?.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
+            'Arrival Time': arrival?.time || 'N/A',
+            'Arrival Pax': arrival?.teamMembers || 0,
+            'Departure Flight': departure?.flightNumber || 'N/A',
+            'Departure Airport': departure?.airport || 'N/A',
+            'Departure Date': departure?.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
+            'Departure Time': departure?.time || 'N/A',
+            'Departure Pax': departure?.teamMembers || 0,
+          });
+        }
+      } else {
+        exportData.push({
+          ...baseInfo,
+          'Request Type': 'Single',
+          'Arrival Flight': req.arrival?.flightNumber || 'N/A',
+          'Arrival Airport': req.arrival?.airport || 'N/A',
+          'Arrival Date': req.arrival?.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
+          'Arrival Time': req.arrival?.time || 'N/A',
+          'Arrival Pax': req.arrival?.teamMembers || 0,
+          'Departure Flight': req.departure?.flightNumber || 'N/A',
+          'Departure Airport': req.departure?.airport || 'N/A',
+          'Departure Date': req.departure?.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
+          'Departure Time': req.departure?.time || 'N/A',
+          'Departure Pax': req.departure?.teamMembers || 0,
+        });
+      }
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Transportation');
+    
+    const teamFileName = (team.teamName || team.email).replace(/[^a-z0-9]/gi, '_');
+    XLSX.writeFile(wb, `Transportation_${teamFileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  // Export specific team to PDF
+  const exportTeamToPDF = (team) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transportation Request Report', 14, 20);
+    
+    // Team Info
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Team: ${team.teamName || team.email}`, 14, 30);
+    doc.text(`Email: ${team.email}`, 14, 37);
+    doc.text(`Total Requests: ${team.total}`, 14, 44);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 51);
+    
+    // Prepare table data
+    const tableData = [];
+    team.requests.forEach(req => {
+      if (isNewFormat(req)) {
+        const maxRequests = Math.max(
+          req.arrivalRequests?.length || 0,
+          req.departureRequests?.length || 0
+        );
+
+        for (let i = 0; i < maxRequests; i++) {
+          const arrival = req.arrivalRequests?.[i];
+          const departure = req.departureRequests?.[i];
+
+          tableData.push([
+            maxRequests > 1 ? `${i + 1}/${maxRequests}` : 'Single',
+            arrival?.flightNumber || 'N/A',
+            arrival?.airport?.substring(0, 20) || 'N/A',
+            arrival?.date ? new Date(arrival.date).toLocaleDateString() : 'N/A',
+            arrival?.time || 'N/A',
+            departure?.flightNumber || 'N/A',
+            departure?.airport?.substring(0, 20) || 'N/A',
+            departure?.date ? new Date(departure.date).toLocaleDateString() : 'N/A',
+            departure?.time || 'N/A',
+            req.status,
+          ]);
+        }
+      } else {
+        tableData.push([
+          'Single',
+          req.arrival?.flightNumber || 'N/A',
+          req.arrival?.airport?.substring(0, 20) || 'N/A',
+          req.arrival?.date ? new Date(req.arrival.date).toLocaleDateString() : 'N/A',
+          req.arrival?.time || 'N/A',
+          req.departure?.flightNumber || 'N/A',
+          req.departure?.airport?.substring(0, 20) || 'N/A',
+          req.departure?.date ? new Date(req.departure.date).toLocaleDateString() : 'N/A',
+          req.departure?.time || 'N/A',
+          req.status,
+        ]);
+      }
+    });
+    
+    // Add table
+    doc.autoTable({
+      startY: 60,
+      head: [['Type', 'Arr Flight', 'Arr Airport', 'Arr Date', 'Arr Time', 'Dep Flight', 'Dep Airport', 'Dep Date', 'Dep Time', 'Status']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { top: 60 },
+      styles: { fontSize: 8, cellPadding: 3 },
+    });
+    
+    const teamFileName = (team.teamName || team.email).replace(/[^a-z0-9]/gi, '_');
+    doc.save(`Transportation_${teamFileName}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const handleExportExcel = () => {
@@ -937,7 +1079,7 @@ function TransportationManagement() {
                 <Grid item xs={12} key={index}>
                   <Card className={classes.tableCard}>
                     <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
                         <Box>
                           <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                             {team.teamName || team.email}
@@ -946,10 +1088,40 @@ function TransportationManagement() {
                             {team.email}
                           </Typography>
                         </Box>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                           <Chip label={`${team.total} Total`} size="small" color="primary" />
                           <Chip label={`${team.approved} Approved`} size="small" color="success" />
                           <Chip label={`${team.pending} Pending`} size="small" color="warning" />
+                          
+                          {/* Export Buttons */}
+                          <IconButton
+                            size="small"
+                            onClick={() => exportTeamToExcel(team)}
+                            title="Export to Excel"
+                            sx={{ 
+                              background: 'linear-gradient(135deg, #10b981, #059669)',
+                              color: 'white',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, #059669, #047857)',
+                              }
+                            }}
+                          >
+                            <DownloadIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => exportTeamToPDF(team)}
+                            title="Export to PDF"
+                            sx={{ 
+                              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                              color: 'white',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                              }
+                            }}
+                          >
+                            <PictureAsPdfIcon fontSize="small" />
+                          </IconButton>
                         </Box>
                       </Box>
                       

@@ -102,6 +102,10 @@ function TransportationForm({ onSuccess }) {
   const [totalCapacity, setTotalCapacity] = useState(0);
   const [hasConfirmedBooking, setHasConfirmedBooking] = useState(false);
   
+  // Existing transportation requests
+  const [existingRequests, setExistingRequests] = useState([]);
+  const [capacityUsed, setCapacityUsed] = useState(0);
+  
   // Form data
   const [phoneNumber, setPhoneNumber] = useState('');
   const [arrivalRequests, setArrivalRequests] = useState([{
@@ -182,6 +186,35 @@ function TransportationForm({ onSuccess }) {
 
         console.log('✅ Total team member capacity:', capacity);
         console.log('✅ Confirmed bookings:', confirmedBookings.length);
+
+        // Fetch existing transportation requests to calculate used capacity
+        const transportQuery = query(
+          collection(db, 'transportationRequests'),
+          where('userId', '==', user.uid)
+        );
+        const transportSnapshot = await getDocs(transportQuery);
+        const existingTransportRequests = transportSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setExistingRequests(existingTransportRequests);
+
+        // Calculate capacity already used in existing requests (only pending/approved)
+        let usedCapacity = 0;
+        existingTransportRequests
+          .filter(req => req.status === 'pending' || req.status === 'approved')
+          .forEach(req => {
+            if (req.totalTeamMembers) {
+              usedCapacity += req.totalTeamMembers;
+            } else if (req.arrival && req.departure) {
+              // Old format
+              usedCapacity += Math.max(req.arrival.teamMembers || 0, req.departure.teamMembers || 0);
+            }
+          });
+        setCapacityUsed(usedCapacity);
+
+        console.log('📊 Capacity used in existing requests:', usedCapacity);
+        console.log('📊 Available capacity:', capacity - usedCapacity);
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -288,8 +321,15 @@ function TransportationForm({ onSuccess }) {
     // Validate team members against capacity (non-referees only)
     if (!isReferee) {
       const totalRequested = calculateTotalTeamMembers();
+      const availableCapacity = totalCapacity - capacityUsed;
+      
+      if (totalRequested > availableCapacity) {
+        setError(`Total team members (${totalRequested}) exceeds your available capacity (${availableCapacity}). You have already used ${capacityUsed} in existing requests.`);
+        return false;
+      }
+      
       if (totalRequested > totalCapacity) {
-        setError(`Total team members (${totalRequested}) exceeds your hotel booking capacity (${totalCapacity})`);
+        setError(`Total team members (${totalRequested}) exceeds your total hotel booking capacity (${totalCapacity})`);
         return false;
       }
     }
@@ -623,32 +663,99 @@ function TransportationForm({ onSuccess }) {
             borderRadius: 2,
             border: '2px solid rgba(99, 102, 241, 0.2)'
           }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6}>
-                <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-                  Total Team Member Capacity
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                  Combined capacity across all confirmed bookings
-                </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
+              📊 Capacity Overview
+            </Typography>
+            
+            <Grid container spacing={3}>
+              {/* Total Capacity */}
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ 
+                  p: 2, 
+                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(79, 70, 229, 0.1))',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  border: '1px solid rgba(99, 102, 241, 0.3)'
+                }}>
+                  <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1, fontWeight: 700 }}>
+                    Total Capacity
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 900, color: '#6366f1' }}>
+                    {totalCapacity}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                    from hotel bookings
+                  </Typography>
+                </Box>
               </Grid>
-              <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                <Chip 
-                  label={totalCapacity} 
-                  sx={{ 
-                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    color: 'white',
-                    fontWeight: 800,
-                    fontSize: '1.5rem',
-                    height: 48,
-                    px: 2
-                  }}
-                />
-                <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.7 }}>
-                  ⚠️ Your transportation requests cannot exceed this capacity
-                </Typography>
+
+              {/* Used Capacity */}
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ 
+                  p: 2, 
+                  background: capacityUsed > 0 
+                    ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1))'
+                    : 'linear-gradient(135deg, rgba(156, 163, 175, 0.15), rgba(107, 114, 128, 0.1))',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  border: capacityUsed > 0 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(156, 163, 175, 0.3)'
+                }}>
+                  <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1, fontWeight: 700 }}>
+                    Used in Existing Requests
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 900, color: capacityUsed > 0 ? '#ef4444' : '#9ca3af' }}>
+                    {capacityUsed}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                    {existingRequests.filter(r => r.status === 'pending' || r.status === 'approved').length} request(s)
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* Available Capacity */}
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ 
+                  p: 2, 
+                  background: (totalCapacity - capacityUsed) > 0
+                    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1))'
+                    : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1))',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  border: (totalCapacity - capacityUsed) > 0 ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)'
+                }}>
+                  <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1, fontWeight: 700 }}>
+                    Available Capacity
+                  </Typography>
+                  <Typography variant="h3" sx={{ 
+                    fontWeight: 900, 
+                    color: (totalCapacity - capacityUsed) > 0 ? '#10b981' : '#ef4444'
+                  }}>
+                    {totalCapacity - capacityUsed}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                    can be requested now
+                  </Typography>
+                </Box>
               </Grid>
             </Grid>
+
+            {/* Warning if capacity used */}
+            {capacityUsed > 0 && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  📌 You have {existingRequests.filter(r => r.status === 'pending' || r.status === 'approved').length} existing transportation request(s) using {capacityUsed} team member slots.
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Warning if no capacity left */}
+            {(totalCapacity - capacityUsed) === 0 && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  ⚠️ All your capacity is currently used in existing requests. You cannot submit new transportation requests unless you cancel an existing one or wait for hotel capacity to increase.
+                </Typography>
+              </Alert>
+            )}
           </Box>
         </Paper>
       )}
@@ -1056,19 +1163,29 @@ function TransportationForm({ onSuccess }) {
             </Grid>
             {!isReferee && (
               <Grid item xs={6} sm={3}>
-                <Typography variant="body2" sx={{ opacity: 0.7 }}>Capacity Remaining:</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7 }}>After Submission:</Typography>
                 <Typography 
                   variant="h6" 
                   sx={{ 
                     fontWeight: 700,
-                    color: (totalCapacity - calculateTotalTeamMembers()) >= 0 ? 'success.main' : 'error.main'
+                    color: ((totalCapacity - capacityUsed) - calculateTotalTeamMembers()) >= 0 ? 'success.main' : 'error.main'
                   }}
                 >
-                  {totalCapacity - calculateTotalTeamMembers()}
+                  {(totalCapacity - capacityUsed) - calculateTotalTeamMembers()} available
                 </Typography>
               </Grid>
             )}
           </Grid>
+
+          {/* Real-time validation warning */}
+          {!isReferee && calculateTotalTeamMembers() > (totalCapacity - capacityUsed) && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                ⚠️ This request ({calculateTotalTeamMembers()} members) exceeds your available capacity ({totalCapacity - capacityUsed}). 
+                Please reduce team members or cancel an existing request first.
+              </Typography>
+            </Alert>
+          )}
         </Box>
 
         {/* Submit Button */}
@@ -1077,7 +1194,12 @@ function TransportationForm({ onSuccess }) {
           size="large"
           fullWidth
           onClick={handleSubmit}
-          disabled={submitting || success}
+          disabled={
+            submitting || 
+            success || 
+            (!isReferee && (totalCapacity - capacityUsed) === 0) ||
+            (!isReferee && calculateTotalTeamMembers() > (totalCapacity - capacityUsed))
+          }
           sx={{
             py: 2,
             fontSize: '1.1rem',
@@ -1085,11 +1207,19 @@ function TransportationForm({ onSuccess }) {
             background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
             '&:hover': {
               background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+            },
+            '&:disabled': {
+              background: 'linear-gradient(135deg, #9ca3af, #6b7280)',
+              color: 'rgba(255, 255, 255, 0.5)',
             }
           }}
         >
           {submitting ? (
             <CircularProgress size={24} sx={{ color: 'white' }} />
+          ) : (!isReferee && (totalCapacity - capacityUsed) === 0) ? (
+            '❌ No Available Capacity'
+          ) : (!isReferee && calculateTotalTeamMembers() > (totalCapacity - capacityUsed)) ? (
+            '❌ Exceeds Available Capacity'
           ) : (
             '✈️ Submit Transportation Request'
           )}
