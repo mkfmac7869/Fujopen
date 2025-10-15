@@ -61,7 +61,18 @@ function Login() {
       router.push('/');
     } catch (error) {
       console.error('Login error:', error);
-      setError('Failed to login. Please check your credentials.');
+      // Show the actual error message from Firebase/AuthContext
+      if (error.message) {
+        setError(error.message);
+      } else if (error.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else if (error.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please check your credentials.');
+      } else {
+        setError('Failed to login. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -84,7 +95,15 @@ function Login() {
           </Typography>
         </div>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert 
+            severity={error.includes('pending approval') ? 'warning' : 'error'} 
+            sx={{ 
+              mb: 2,
+              '& .MuiAlert-message': {
+                fontWeight: error.includes('pending approval') ? 600 : 400,
+              }
+            }}
+          >
             {error}
           </Alert>
         )}

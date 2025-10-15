@@ -24,6 +24,7 @@ import SocialAuth from './SocialAuth';
 import AuthFrame from './AuthFrame';
 import useStyles from './form-style';
 import countries from '../../lib/countries';
+import countryCodes from '../../lib/countryCodes';
 
 function Register() {
   const { classes, cx } = useStyles();
@@ -36,6 +37,7 @@ function Register() {
     fullName: '',
     email: '',
     phone: '',
+    countryCode: null,
     position: '',
     teamName: '',
     country: '',
@@ -87,12 +89,19 @@ function Register() {
       setError('');
       setLoading(true);
       
+      // Combine country code with phone number
+      const fullPhoneNumber = values.countryCode 
+        ? `${values.countryCode.phone} ${values.phone}` 
+        : values.phone;
+      
       const userData = {
         fullName: values.fullName,
-        phone: values.phone,
+        phone: fullPhoneNumber,
         position: values.position,
         teamName: values.teamName,
         country: values.country,
+        approved: false, // User needs admin approval before login
+        createdAt: new Date().toISOString(),
         // Logo upload would be handled separately with Firebase Storage
       };
       
@@ -116,6 +125,33 @@ function Register() {
         }
       } catch (emailError) {
         console.error('❌ Error sending welcome email:', emailError);
+        // Don't block registration if email fails
+      }
+
+      // Send admin notification via API
+      try {
+        const adminNotificationResponse = await fetch('/api/send-admin-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            newUser: {
+              name: values.fullName,
+              email: values.email,
+              phone: fullPhoneNumber,
+              position: values.position,
+              teamName: values.teamName,
+              country: values.country,
+            },
+          }),
+        });
+        
+        if (adminNotificationResponse.ok) {
+          console.log('✅ Admin notification sent');
+        } else {
+          console.error('❌ Failed to send admin notification');
+        }
+      } catch (adminEmailError) {
+        console.error('❌ Error sending admin notification:', adminEmailError);
         // Don't block registration if email fails
       }
       
@@ -177,16 +213,89 @@ function Register() {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextValidator
-                variant="filled"
-                className={classes.input}
-                label="Phone Number"
-                onChange={handleChange('phone')}
-                name="phone"
-                value={values.phone}
-                validators={['required']}
-                errorMessages={['This field is required']}
-              />
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}>
+                Phone Number <span style={{ color: 'red' }}>*</span>
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={5}>
+                  <Autocomplete
+                    fullWidth
+                    options={countryCodes}
+                    getOptionLabel={(option) => `${option.phone} ${option.name}`}
+                    value={values.countryCode}
+                    onChange={(event, newValue) => {
+                      setValues({ ...values, countryCode: newValue });
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="filled"
+                        label="Country Code"
+                        className={classes.input}
+                        placeholder="Search country..."
+                        required
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props}>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 60 }}>
+                            {option.phone}
+                          </Typography>
+                          <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                            {option.name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                    sx={{
+                      '& .MuiAutocomplete-popupIndicator': {
+                        color: '#6366f1',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={7}>
+                  <TextValidator
+                    variant="filled"
+                    className={classes.input}
+                    label="Phone Number"
+                    onChange={handleChange('phone')}
+                    name="phone"
+                    value={values.phone}
+                    validators={['required']}
+                    errorMessages={['This field is required']}
+                    placeholder="e.g., 501234567"
+                    helperText={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                          📱 Enter numbers only (without country code)
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </Grid>
+              </Grid>
+              <Box sx={{ 
+                mt: 1.5, 
+                p: 1.5, 
+                background: 'rgba(99, 102, 241, 0.08)', 
+                borderRadius: 1,
+                borderLeft: '3px solid #6366f1'
+              }}>
+                <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, mb: 0.5, color: '#6366f1' }}>
+                  💡 How to enter your phone number:
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
+                  1. Select your country code from the dropdown (e.g., +971 for UAE)
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
+                  2. Enter your phone number WITHOUT the country code
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', opacity: 0.8, mt: 0.5, fontWeight: 600 }}>
+                  Example: +971 501234567 (Country Code + Phone)
+                </Typography>
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <TextField
