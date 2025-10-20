@@ -53,9 +53,9 @@ function Landing() {
       <section id="faq" className={classes.spaceTopShort}>
         <Faq />
       </section>
-      <section id="blog" className={classes.spaceTopShort}>
+      {/* <section id="blog" className={classes.spaceTopShort}>
         <NewsEvent />
-      </section>
+      </section> */}
       {/* <Hidden mdDown>
         <Corner menuList={singleMenu.ai} />
       </Hidden>
