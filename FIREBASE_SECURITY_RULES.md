@@ -225,6 +225,12 @@ service firebase.storage {
       allow write: if request.auth.uid == userId || isAdmin();
     }
     
+    // Additional documents (alternative path)
+    match /additionalDocuments/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
     // Certificate templates (admin uploads only)
     match /certificateTemplates/{fileName} {
       allow read: if isAuthenticated();
