@@ -146,19 +146,11 @@ function MyApp(props) {
     // const { pathname, asPath, query } = router;
     // router.push({ pathname, query }, asPath, { locale: curLang });
 
-    // Remove preloader
-    const preloader = document.getElementById('preloader');
-    if (preloader !== null || undefined) {
-      setTimeout(() => {
-        preloader.remove();
-      }, 1500);
-    }
-
     // Remove loading bar
     setLoading(0);
     setTimeout(() => {
       setLoading(100);
-    }, 2000);
+    }, 200);
   }, []);
 
   const toggleDarkTheme = () => {

@@ -69,26 +69,6 @@ class MyDocument extends Document {
         </head>
         <MetaHead />
         <body style={{ fontFamily: currentLocale === 'ar' ? 'Tajawal, sans-serif' : 'Montserrat, sans-serif' }}>
-          <div
-            id="preloader"
-            style={{
-              position: 'fixed',
-              zIndex: 10000,
-              background: '#fafafa',
-              width: '100%',
-              height: '100%',
-            }}
-          >
-            <img
-              style={{
-                position: 'fixed',
-                top: 'calc(50% - 50px)',
-                left: 'calc(50% - 50px)'
-              }}
-              src="/images/preloader.gif"
-              alt="loading"
-            />
-          </div>
           {getInitColorSchemeScript()}
           <Main />
           <NextScript />
