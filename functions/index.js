@@ -35,9 +35,17 @@ async function sendEmail(to, subject, html, attachments = []) {
 
     // Add attachments if provided
     if (attachments && attachments.length > 0) {
+      console.log('📎 Adding attachments to email:', attachments.length, 'files');
+      console.log('📎 Attachment details:', attachments.map(a => ({ filename: a.filename, size: a.content?.length || 0 })));
       emailPayload.attachments = attachments;
+    } else {
+      console.log('⚠️ No attachments to add');
     }
 
+    console.log('📧 Sending email to:', to);
+    console.log('📧 Subject:', subject);
+    console.log('📧 Has attachments:', !!emailPayload.attachments);
+    
     const { data, error } = await resend.emails.send(emailPayload);
 
     if (error) {
@@ -45,7 +53,7 @@ async function sendEmail(to, subject, html, attachments = []) {
       return { success: false, error };
     }
 
-    console.log('✅ Email sent:', data);
+    console.log('✅ Email sent successfully:', data);
     return { success: true, data };
   } catch (error) {
     console.error('❌ Email exception:', error);
@@ -303,8 +311,13 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
       `;
 
       // Add visa document as attachment
+      console.log('📎 Processing attachment...');
+      console.log('📎 visaDocumentUrl:', visaDocumentUrl);
+      console.log('📎 visaDocumentData:', visaDocumentData ? 'provided' : 'not provided');
+      
       if (visaDocumentData) {
         // If base64 data is provided
+        console.log('📎 Using base64 data');
         attachments.push({
           filename: `Visa_${applicantName || name}.pdf`,
           content: visaDocumentData,
@@ -312,26 +325,42 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
         });
       } else if (visaDocumentUrl) {
         // If URL is provided, fetch the file
+        console.log('📎 Fetching from URL:', visaDocumentUrl);
         try {
           const https = require('https');
           const response = await new Promise((resolve, reject) => {
             https.get(visaDocumentUrl, (res) => {
+              console.log('📎 HTTP response status:', res.statusCode);
               const chunks = [];
-              res.on('data', (chunk) => chunks.push(chunk));
-              res.on('end', () => resolve(Buffer.concat(chunks)));
+              res.on('data', (chunk) => {
+                console.log('📎 Received chunk:', chunk.length, 'bytes');
+                chunks.push(chunk);
+              });
+              res.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+                console.log('📎 Total bytes received:', buffer.length);
+                resolve(buffer);
+              });
               res.on('error', reject);
             }).on('error', reject);
           });
           
+          console.log('📎 Converting to base64...');
+          const base64Content = response.toString('base64');
+          console.log('📎 Base64 length:', base64Content.length);
+          
           attachments.push({
             filename: `Visa_${applicantName || name}.pdf`,
-            content: response.toString('base64'),
+            content: base64Content,
             type: 'application/pdf'
           });
+          console.log('✅ Attachment added successfully');
         } catch (fetchError) {
-          console.error('Error fetching visa document:', fetchError);
+          console.error('❌ Error fetching visa document:', fetchError);
           // Continue without attachment but log the error
         }
+      } else {
+        console.log('⚠️ No visa document URL or data provided');
       }
     } else {
       // For other statuses (pending, processing, rejected)
