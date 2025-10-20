@@ -231,7 +231,8 @@ function HotelGallery() {
   };
 
   const handleBookNow = (hotelId) => {
-    router.push(`/hotel/${hotelId}`);
+    const locale = router.query.locale || 'en';
+    router.push(`/${locale}/hotel/${hotelId}`);
   };
 
   if (loading) {

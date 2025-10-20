@@ -188,7 +188,8 @@ function HotelDetail({ hotelId }) {
         setHotel(hotelData);
       } else {
         console.error('Hotel not found');
-        router.push('/hotel');
+        const locale = router.query.locale || 'en';
+        router.push(`/${locale}/hotel`);
       }
     } catch (error) {
       console.error('Error fetching hotel:', error);
@@ -218,10 +219,11 @@ function HotelDetail({ hotelId }) {
   }
 
   if (!hotel) {
+    const locale = router.query.locale || 'en';
     return (
       <Container className={classes.root}>
         <Typography variant="h5">Hotel not found</Typography>
-        <Button onClick={() => router.push('/hotel')} variant="contained" sx={{ mt: 2 }}>
+        <Button onClick={() => router.push(`/${locale}/hotel`)} variant="contained" sx={{ mt: 2 }}>
           {t('ai-landing.hotel_back_hotels')}
         </Button>
       </Container>
@@ -535,7 +537,10 @@ function HotelDetail({ hotelId }) {
       {cartCount > 0 && (
         <Fab 
           color="primary" 
-          onClick={() => router.push('/hotel')}
+          onClick={() => {
+            const locale = router.query.locale || 'en';
+            router.push(`/${locale}/hotel`);
+          }}
           sx={{
             position: 'fixed',
             bottom: 32,
