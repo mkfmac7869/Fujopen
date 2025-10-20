@@ -21,6 +21,11 @@ module.exports = withImages({
       ? process.env.LOCALE_SUBPATHS
       : 'none',
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/**/*': ['./node_modules/**/*.wasm', './node_modules/**/*.node'],
+    },
+  },
   webpack: (config, options) => {
     config.plugins.push(
       //      new ESLintPlugin({
