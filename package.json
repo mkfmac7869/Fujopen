@@ -15,9 +15,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/clean-api-routes.js",
     "start": "next start",
-    "export": "next build",
+    "export": "next build && node scripts/clean-api-routes.js",
     "deploy": "npm run export && firebase deploy --only hosting"
   },
   "dependencies": {

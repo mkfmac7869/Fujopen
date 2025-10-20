@@ -458,7 +458,7 @@ function FoldersManagement() {
           body: JSON.stringify(emailPayload),
         });
         
-        console.log('📧 Email response status:', emailResponse.status);
+          console.log('📧 Email response status:', emailResponse.status);
         console.log('📧 Email response ok:', emailResponse.ok);
         
         let responseData = null;
