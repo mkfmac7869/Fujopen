@@ -230,20 +230,24 @@ function VisaManagement() {
       await updateDoc(doc(db, 'visaApplications', selectedApplication.id), updateData);
       console.log('Firestore updated successfully');
 
-      // Send status update email via API
+      // Send status update email via Firebase Cloud Function
       try {
-        const emailType = (newStatus === 'approved' && updateData.approvedVisaFile) ? 'approved' : 'status';
-        const emailResponse = await fetch('/api/send-visa-email', {
+        const emailPayload = {
+          email: selectedApplication.userEmail,
+          name: selectedApplication.fullNameEnglish,
+          status: newStatus,
+          applicantName: selectedApplication.fullNameEnglish,
+        };
+
+        // Include visa document URL if approved and document exists
+        if (newStatus === 'approved' && updateData.approvedVisaFile) {
+          emailPayload.visaDocumentUrl = updateData.approvedVisaFile;
+        }
+
+        const emailResponse = await fetch('https://www.fujopen.com/api/send-visa-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: emailType,
-            email: selectedApplication.userEmail,
-            name: selectedApplication.fullNameEnglish,
-            status: newStatus,
-            visaUrl: updateData.approvedVisaFile,
-            applicationData: selectedApplication,
-          }),
+          body: JSON.stringify(emailPayload),
         });
         
         if (emailResponse.ok) {

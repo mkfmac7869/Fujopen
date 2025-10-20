@@ -410,16 +410,14 @@ function VisaGallery() {
 
       await addDoc(collection(db, 'visaApplications'), newApplication);
       
-      // Send visa application confirmation email via API
+      // Send visa application confirmation email via Firebase Cloud Function
       try {
-        const emailResponse = await fetch('/api/send-visa-email', {
+        const emailResponse = await fetch('https://www.fujopen.com/api/send-welcome-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            type: 'application',
             email: user.email,
             name: formData.fullNameEnglish || user.displayName,
-            applicationData: newApplication,
           }),
         });
         
