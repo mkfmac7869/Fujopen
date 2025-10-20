@@ -24,14 +24,21 @@ const corsOptions = {
 /**
  * Helper function to send email
  */
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, attachments = []) {
   try {
-    const { data, error } = await resend.emails.send({
+    const emailPayload = {
       from: FROM_EMAIL,
       to,
       subject,
       html
-    });
+    };
+
+    // Add attachments if provided
+    if (attachments && attachments.length > 0) {
+      emailPayload.attachments = attachments;
+    }
+
+    const { data, error } = await resend.emails.send(emailPayload);
 
     if (error) {
       console.error('❌ Resend error:', error);
@@ -208,23 +215,144 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
   }
 
   try {
-    const { email, name, type, status } = req.body;
+    const { email, name, type, status, visaDocumentUrl, visaDocumentData, applicantName } = req.body;
 
     if (!email || !name) {
       return res.status(400).json({ error: 'Email and name are required' });
     }
 
     let subject = 'Visa Application Update - Fujairah Open 2026';
-    let html = `
-      <div style="font-family: Arial, sans-serif;">
-        <h2>Hello ${name}!</h2>
-        <p>Your visa application has been updated.</p>
-        <p><strong>Status:</strong> ${status || 'Processing'}</p>
-        <p><a href="${APP_URL}/visa" style="background: #6366f1; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>
-      </div>
-    `;
+    let html = '';
+    let attachments = [];
 
-    const result = await sendEmail(email, subject, html);
+    // If status is approved and we have a visa document
+    if (status === 'approved' && (visaDocumentUrl || visaDocumentData)) {
+      subject = '🎉 Your Visa is Approved! - Fujairah Open 2026';
+      
+      html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; }
+            .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 50px 30px; text-align: center; }
+            .content { background: #f8f9fa; padding: 40px 30px; }
+            .success-box { background: #d1fae5; padding: 30px; border-radius: 10px; border: 2px solid #10b981; margin: 20px 0; text-align: center; }
+            .button { background: #10b981; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 20px 0; font-weight: bold; font-size: 18px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0; font-size: 48px;">🎉</h1>
+              <h2 style="margin: 15px 0; font-size: 32px;">Visa Approved!</h2>
+              <p style="margin: 0; font-size: 18px;">Your journey to Fujairah Open 2026 is confirmed</p>
+            </div>
+            
+            <div class="content">
+              <h2 style="color: #1e3a8a;">Congratulations ${name}! 🥋</h2>
+              <p style="font-size: 16px;">We're excited to inform you that your visa application for the <strong>13th Fujairah Open International Taekwondo Championships 2026</strong> has been <strong style="color: #10b981;">APPROVED</strong>!</p>
+              
+              <div class="success-box">
+                <h3 style="margin-top: 0; color: #065f46; font-size: 24px;">✅ Visa Status: APPROVED</h3>
+                <p style="font-size: 16px; margin: 15px 0;">Your visa document is attached to this email</p>
+                <p style="font-size: 14px; margin: 10px 0; color: #065f46;">📎 <strong>Attached:</strong> Visa_${applicantName || name}.pdf</p>
+              </div>
+              
+              <div style="background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #1e3a8a;">📋 Important Instructions:</h3>
+                <ol style="color: #374151; line-height: 1.8;">
+                  <li><strong>Download the attached visa:</strong> The PDF document is attached to this email</li>
+                  <li><strong>Print the document:</strong> Bring a printed copy when traveling to the UAE</li>
+                  <li><strong>Keep it accessible:</strong> You'll need to present it at immigration</li>
+                  <li><strong>Check validity:</strong> Ensure the visa dates match your travel plans</li>
+                </ol>
+              </div>
+              
+              <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h4 style="margin: 0 0 10px 0; color: #1e40af;">🎯 Ready for the Championship?</h4>
+                <p style="margin: 10px 0; color: #1e40af;">Complete your preparations:</p>
+                <div style="margin: 15px 0;">
+                  <a href="${APP_URL}/hotel" style="background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px; font-weight: bold;">🏨 Book Hotel</a>
+                  <a href="${APP_URL}/transportation" style="background: #8b5cf6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px; font-weight: bold;">🚗 Arrange Transport</a>
+                </div>
+              </div>
+              
+              <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Important Reminders:</h4>
+                <ul style="margin: 10px 0; padding-left: 20px; color: #856404;">
+                  <li>Visa is valid for entry into the UAE only</li>
+                  <li>Must be presented at immigration counter</li>
+                  <li>Keep digital and physical copies</li>
+                  <li>Ensure your passport is valid for 6+ months</li>
+                </ul>
+              </div>
+              
+              <p style="margin-top: 30px; text-align: center; font-size: 18px; color: #1e3a8a;"><strong>See you at the championship! 🥋🇦🇪</strong></p>
+              
+              <p style="margin-top: 30px; color: #6b7280;">Need help? Contact us at <a href="mailto:info@fujairahopen.com" style="color: #6366f1;">info@fujairahopen.com</a></p>
+            </div>
+            
+            <div style="text-align: center; padding: 30px; color: #9ca3af; font-size: 13px;">
+              <p>© 2026 Fujairah Open International Taekwondo Championships</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Add visa document as attachment
+      if (visaDocumentData) {
+        // If base64 data is provided
+        attachments.push({
+          filename: `Visa_${applicantName || name}.pdf`,
+          content: visaDocumentData,
+          type: 'application/pdf'
+        });
+      } else if (visaDocumentUrl) {
+        // If URL is provided, fetch the file
+        try {
+          const https = require('https');
+          const response = await new Promise((resolve, reject) => {
+            https.get(visaDocumentUrl, (res) => {
+              const chunks = [];
+              res.on('data', (chunk) => chunks.push(chunk));
+              res.on('end', () => resolve(Buffer.concat(chunks)));
+              res.on('error', reject);
+            }).on('error', reject);
+          });
+          
+          attachments.push({
+            filename: `Visa_${applicantName || name}.pdf`,
+            content: response.toString('base64'),
+            type: 'application/pdf'
+          });
+        } catch (fetchError) {
+          console.error('Error fetching visa document:', fetchError);
+          // Continue without attachment but log the error
+        }
+      }
+    } else {
+      // For other statuses (pending, processing, rejected)
+      html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 40px 30px; text-align: center;">
+            <h2 style="margin: 0; font-size: 28px;">Visa Application Update</h2>
+          </div>
+          <div style="background: #f8f9fa; padding: 40px 30px;">
+            <h2>Hello ${name}!</h2>
+            <p>Your visa application has been updated.</p>
+            <p><strong>Status:</strong> <span style="color: #6366f1; font-weight: bold; text-transform: uppercase;">${status || 'Processing'}</span></p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${APP_URL}/visa" style="background: #6366f1; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">View Details</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const result = await sendEmail(email, subject, html, attachments);
 
     if (result.success) {
       return res.status(200).json({ success: true });
@@ -232,6 +360,7 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
       return res.status(500).json({ success: false, error: result.error });
     }
   } catch (error) {
+    console.error('Error in sendVisaEmail:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
 });
