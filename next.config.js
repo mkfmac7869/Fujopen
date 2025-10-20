@@ -6,7 +6,7 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 module.exports = withImages({
   // Enable this code below for Server Side Rendering/Translation (SSR)
   //  i18n,
-  // output: 'export', // Disabled for Vercel deployment (breaks API routes)
+  output: 'export', // Enable for Firebase Hosting static export
   trailingSlash: true,
   images: {
     disableStaticImages: true,
