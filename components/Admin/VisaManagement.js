@@ -245,7 +245,7 @@ function VisaManagement() {
         }
 
         console.log('📧 Sending email with payload:', emailPayload);
-        const emailResponse = await fetch('https://www.fujopen.com/api/send-visa-email', {
+        const emailResponse = await fetch('/api/send-visa-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(emailPayload),
