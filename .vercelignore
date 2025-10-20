@@ -1,0 +1,7 @@
+# Reduce deployment size
+.firebase
+firebase-debug.log
+*.md
+documentation/
+.vercel-redeploy.txt
+
