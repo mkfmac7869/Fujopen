@@ -244,16 +244,20 @@ function VisaManagement() {
           emailPayload.visaDocumentUrl = updateData.approvedVisaFile;
         }
 
+        console.log('📧 Sending email with payload:', emailPayload);
         const emailResponse = await fetch('https://www.fujopen.com/api/send-visa-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(emailPayload),
         });
         
+        const responseData = await emailResponse.json();
+        console.log('📧 Email API response:', responseData);
+        
         if (emailResponse.ok) {
           console.log('✅ Visa email sent to:', selectedApplication.userEmail);
         } else {
-          console.error('❌ Failed to send visa email');
+          console.error('❌ Failed to send visa email. Status:', emailResponse.status, 'Response:', responseData);
         }
       } catch (emailError) {
         console.error('❌ Error sending visa email:', emailError);
