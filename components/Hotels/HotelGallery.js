@@ -232,7 +232,8 @@ function HotelGallery() {
 
   const handleBookNow = (hotelId) => {
     const locale = router.query.locale || 'en';
-    router.push(`/${locale}/hotel/${hotelId}`);
+    // Use query parameter instead of dynamic route for static export compatibility
+    router.push(`/${locale}/hotel?id=${hotelId}`);
   };
 
   if (loading) {

@@ -1,6 +1,7 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { Container, Box, Tabs, Tab, Fab, Badge } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -13,6 +14,7 @@ import singleMenu from 'components/Header/data/single';
 import HomeLayout from 'components/Layouts/Home';
 import ProtectedRoute from 'components/Utils/ProtectedRoute';
 import HotelGallery from 'components/Hotels/HotelGallery';
+import HotelDetail from 'components/Hotels/HotelDetail';
 import MyBookings from 'components/Hotels/MyBookings';
 import BookingCart from 'components/Hotels/BookingCart';
 import MediaBanner from 'components/HeroBanner/MediaBanner';
@@ -23,10 +25,31 @@ import brand from 'public/text/brand';
 import imgAPI from 'public/images/imgAPI';
 
 function Hotel() {
+  const router = useRouter();
+  const { id } = router.query; // Get hotel ID from query parameter
   const { classes } = useSpacing();
   const { t } = useTranslation('common');
   const { cartCount } = useCart();
   const [activeTab, setActiveTab] = useState(0);
+
+  // If there's an ID in the query, show hotel detail instead
+  if (id) {
+    return (
+      <Fragment>
+        <Head>
+          <title>
+            { brand.name + ' - Hotel Details' }
+          </title>
+        </Head>
+        <CssBaseline />
+        <ProtectedRoute>
+          <div className={classes.innerPage}>
+            <HotelDetail hotelId={id} />
+          </div>
+        </ProtectedRoute>
+      </Fragment>
+    );
+  }
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);

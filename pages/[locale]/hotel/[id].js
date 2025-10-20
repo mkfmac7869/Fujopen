@@ -46,26 +46,11 @@ function HotelDetailPage() {
 const getStaticProps = makeStaticProps(['common']);
 
 async function getStaticPaths() {
-  // Get locales from i18next config
-  const locales = i18nextConfig.i18n.locales;
-
-  // For dynamic hotel IDs from Firebase, we use fallback: 'blocking'
-  // This allows any hotel ID to work, not just predefined ones
-  const paths = [];
-  
-  // We can optionally pre-generate some paths, but fallback will handle others
-  locales.forEach((locale) => {
-    paths.push({ 
-      params: { 
-        locale: locale,
-        id: 'placeholder' // Just a placeholder, fallback handles real IDs
-      } 
-    });
-  });
-
+  // For static export with dynamic routes, we need to return empty paths
+  // The page will be client-side rendered when accessed
   return {
-    paths: [],  // Empty paths, let fallback handle all routes
-    fallback: 'blocking',  // This enables dynamic routes from Firebase
+    paths: [],
+    fallback: false, // Return 404 for non-existent paths, let client handle loading
   };
 }
 
