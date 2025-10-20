@@ -13,10 +13,12 @@ import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 import IconButton from '@mui/material/IconButton';
 import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 import brand from 'public/text/brand';
 import { useTextAlign } from 'theme/common';
 import Logo from '../Branding/Logo';
 import SelectLang from '../Utils/LangSwitch/Select';
+import LocaleLink from '../Link';
 import useStyles from './sitemap-style';
 
 function Copyright() {
@@ -28,24 +30,6 @@ function Copyright() {
   );
 }
 
-const footers = [
-  {
-    title: 'Company',
-    description: ['Team', 'History', 'Contact us', 'Locations'],
-    link: ['#team', '#history', '#contact-us', '#locations'],
-  },
-  {
-    title: 'Resources',
-    description: ['Resource', 'Resource name', 'Another resource', 'Final resource'],
-    link: ['#resource', '#resource-name', '#another-resource', '#final-resource'],
-  },
-  {
-    title: 'Legal',
-    description: ['Privacy policy', 'Terms of use'],
-    link: ['#privacy-policy', '#terms-of-use'],
-  },
-];
-
 function Footer(props) {
   // Theme breakpoints
   const theme = useTheme();
@@ -55,9 +39,29 @@ function Footer(props) {
   // Translation Function
   const { toggleDir } = props;
   const { t } = useTranslation('common');
+  const router = useRouter();
+  const locale = router.query.locale || 'en';
 
   const { classes } = useStyles();
   const { classes: align } = useTextAlign();
+
+  // Main menu items that match the header
+  const mainMenuItems = [
+    { name: t('ai-landing.header_home'), link: `/${locale}` },
+    { name: t('ai-landing.header_visa'), link: `/${locale}/visa` },
+    { name: t('ai-landing.header_hotel'), link: `/${locale}/hotel` },
+    { name: t('ai-landing.header_transportation'), link: `/${locale}/transportation` },
+    { name: t('ai-landing.header_certificates'), link: `/${locale}/certificates` },
+    { name: t('ai-landing.header_profile'), link: `/${locale}/profile` },
+  ];
+
+  // Footer sections
+  const footers = [
+    {
+      title: 'Quick Links',
+      items: mainMenuItems
+    },
+  ];
 
   return (
     <footer className={classes.footer}>
@@ -75,26 +79,28 @@ function Footer(props) {
           <Grid item xs={12} md={6}>
             <Grid container justifyContent="space-evenly">
               {footers.map(footer => (
-                <Grid item xs={12} md={3} key={footer.title} className={classes.siteMapItem}>
+                <Grid item xs={12} md={12} key={footer.title} className={classes.siteMapItem}>
                   {isDesktop && (
                     <div>
                       <Typography variant="h6" className={classes.title} color="textPrimary" gutterBottom>
                         {footer.title}
                       </Typography>
-                      <ul>
-                        {footer.description.map((item, index) => (
-                          <li key={item}>
+                      <Grid container spacing={2}>
+                        {footer.items.map((item, index) => (
+                          <Grid item xs={6} md={4} key={index}>
                             <Link
-                              href={footer.link[index]}
+                              component={LocaleLink}
+                              to={item.link}
                               variant="subtitle1"
                               color="textSecondary"
                               underline="hover"
+                              sx={{ display: 'block', mb: 1 }}
                             >
-                              {item}
+                              {item.name}
                             </Link>
-                          </li>
+                          </Grid>
                         ))}
-                      </ul>
+                      </Grid>
                     </div>
                   )}
                   {isMobile && (
@@ -117,20 +123,22 @@ function Footer(props) {
                         </strong>
                       </AccordionSummary>
                       <AccordionDetails>
-                        <ul>
-                          {footer.description.map((item, index) => (
-                            <li key={item}>
+                        <Grid container spacing={1}>
+                          {footer.items.map((item, index) => (
+                            <Grid item xs={6} key={index}>
                               <Link
-                                href={footer.link[index]}
+                                component={LocaleLink}
+                                to={item.link}
                                 variant="subtitle1"
                                 color="textSecondary"
                                 underline="hover"
+                                sx={{ display: 'block', mb: 1 }}
                               >
-                                {item}
+                                {item.name}
                               </Link>
-                            </li>
+                            </Grid>
                           ))}
-                        </ul>
+                        </Grid>
                       </AccordionDetails>
                     </Accordion>
                   )}
