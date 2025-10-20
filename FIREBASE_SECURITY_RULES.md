@@ -160,43 +160,87 @@ service firebase.storage {
              firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
     // Passport scans
     match /passports/{userId}/{fileName} {
-      // Allow read for authenticated users
-      allow read: if request.auth != null;
-      
-      // Allow write for the user themselves or admins
+      allow read: if isAuthenticated();
       allow write: if request.auth.uid == userId || isAdmin();
     }
     
-    // Visa applications documents
+    // Visa application documents (main path)
+    match /visaDocuments/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // Alternative visa applications path
     match /visaApplications/{userId}/{fileName} {
-      allow read: if request.auth != null;
+      allow read: if isAuthenticated();
       allow write: if request.auth.uid == userId || isAdmin();
     }
     
     // Approved visa documents (admin uploads only)
     match /approvedVisas/{fileName} {
-      allow read: if request.auth != null;
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
     
     // Team logos
     match /teamLogos/{userId}/{fileName} {
-      allow read: if request.auth != null;
+      allow read: if isAuthenticated();
       allow write: if request.auth.uid == userId || isAdmin();
     }
     
     // Profile photos
     match /profilePhotos/{userId}/{fileName} {
-      allow read: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // Personal photos for visa applications
+    match /personalPhotos/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // License/certificate files
+    match /licenses/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // National ID documents
+    match /nationalIds/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // Additional documents
+    match /additionalDocs/{userId}/{fileName} {
+      allow read: if isAuthenticated();
       allow write: if request.auth.uid == userId || isAdmin();
     }
     
     // Certificate templates (admin uploads only)
     match /certificateTemplates/{fileName} {
-      allow read: if request.auth != null;
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
+    }
+    
+    // Hotel booking documents
+    match /hotelDocuments/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // Transportation documents
+    match /transportationDocuments/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin();
     }
   }
 }
