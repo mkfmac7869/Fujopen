@@ -4,32 +4,45 @@ import gradient from 'theme/gradient';
 import flag from 'public/images/flag-logo.png';
 
 const flagIcon = {
-  width: 16,
-  height: 16,
+  width: 20,
+  height: 20,
   borderRadius: '50%',
-  display: 'inline-block',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   position: 'relative',
   marginRight: 5,
-  top: 1,
-  background: `url(${flag}) no-repeat transparent`,
-  backgroundSize: '16px auto',
-  '&[class="ar"]': {
-    backgroundPosition: '0 3px'
+  fontSize: '16px',
+  lineHeight: 1,
+  '&[class="en"]::before': {
+    content: '"🇬🇧"'
   },
-  '&[class="zh"]': {
-    backgroundPosition: '0 -12px'
+  '&[class="de"]::before': {
+    content: '"🇩🇪"'
   },
-  '&[class="en"]': {
-    backgroundPosition: '0 -28px'
+  '&[class="id"]::before': {
+    content: '"🇮🇩"'
   },
-  '&[class="de"]': {
-    backgroundPosition: '0 -44px'
+  '&[class="ar"]::before': {
+    content: '"🇸🇦"'
   },
-  '&[class="id"]': {
-    backgroundPosition: '0 -62px'
+  '&[class="pt"]::before': {
+    content: '"🇵🇹"'
   },
-  '&[class="pt"]': {
-    backgroundPosition: '0 -79px'
+  '&[class="zh"]::before': {
+    content: '"🇨🇳"'
+  },
+  '&[class="ru"]::before': {
+    content: '"🇷🇺"'
+  },
+  '&[class="ur"]::before': {
+    content: '"🇵🇰"'
+  },
+  '&[class="ko"]::before': {
+    content: '"🇰🇷"'
+  },
+  '&[class="fa"]::before': {
+    content: '"🇮🇷"'
   },
 };
 

@@ -7,6 +7,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import ListItemText from '@mui/material/ListItemText';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import languageDetector from 'lib/languageDetector';
 import i18nextConfig from '../../../next-i18next.config';
 
@@ -19,6 +20,20 @@ const LanguageSwitch = ({
 }) => {
   const router = useRouter();
   const { t } = useTranslation('common');
+
+  // Map language codes to flag image paths
+  const flagMap = {
+    en: '/images/FLAGS/GB.png',
+    de: '/images/FLAGS/DE.png', // Will need to add this file
+    id: '/images/FLAGS/ID.png',
+    ar: '/images/FLAGS/SA.png',
+    pt: '/images/FLAGS/PT.png',
+    zh: '/images/FLAGS/CN.png',
+    ru: '/images/FLAGS/RU.png',
+    ur: '/images/FLAGS/PK.png',
+    ko: '/images/FLAGS/KR.png',
+    fa: '/images/FLAGS/IR.png',
+  };
 
   const changeLang = lang => {
     languageDetector.cache(lang);
@@ -43,7 +58,7 @@ const LanguageSwitch = ({
       router.push({ pathname, query }, asPath, { locale: lang });
     }
 
-    if (lang === 'ar') {
+    if (lang === 'ar' || lang === 'ur' || lang === 'fa') {
       toggleDir('rtl');
     } else {
       toggleDir('ltr');
@@ -57,8 +72,18 @@ const LanguageSwitch = ({
       button
       onClick={() => changeLang(locale)}
     >
-      <ListItemIcon className="flag">
-        <i className={locale} />
+      <ListItemIcon style={{ minWidth: '40px' }}>
+        <img 
+          src={flagMap[locale]} 
+          alt={`${locale} flag`}
+          style={{ 
+            width: '28px',
+            height: '20px',
+            objectFit: 'cover',
+            borderRadius: '3px',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}
+        />
       </ListItemIcon>
       <ListItemText primary={t(locale)} />
       {checked && (
@@ -74,8 +99,18 @@ const LanguageSwitch = ({
       button
       onClick={() => changeLang(locale)}
     >
-      <ListItemIcon className="flag">
-        <i className={locale} />
+      <ListItemIcon style={{ minWidth: '40px' }}>
+        <img 
+          src={flagMap[locale]} 
+          alt={`${locale} flag`}
+          style={{ 
+            width: '28px',
+            height: '20px',
+            objectFit: 'cover',
+            borderRadius: '3px',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}
+        />
       </ListItemIcon>
       <ListItemText primary={t(locale)} />
       {checked && (

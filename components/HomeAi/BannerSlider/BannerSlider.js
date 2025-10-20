@@ -33,10 +33,10 @@ function BannerSlider() {
 
   const { t } = useTranslation('common');
   const router = useRouter();
-  const isArabic = router.query.locale === 'ar';
+  const isRTL = ['ar', 'ur', 'fa'].includes(router.query.locale);
   
-  // Use RTL image for Arabic, normal image for other languages
-  const backgroundImage = isArabic ? '/images/ai/2_rtl.png' : imgAPI.ai[0];
+  // Use RTL image for Arabic, Urdu, and Persian/Farsi; normal image for other languages
+  const backgroundImage = isRTL ? '/images/ai/2_rtl.png' : imgAPI.ai[0];
 
   return (
     <div className={classes.bannerWrap} style={{ margin: 0, padding: 0, top: 0 }}>
@@ -51,11 +51,11 @@ function BannerSlider() {
                   margin: 0, 
                   padding: 0, 
                   display: 'block',
-                  width: isArabic ? '100%' : '110%',
-                  height: isArabic ? '100%' : '110%',
+                  width: isRTL ? '100%' : '110%',
+                  height: isRTL ? '100%' : '110%',
                   objectFit: 'cover',
-                  objectPosition: isArabic ? 'center' : 'center',
-                  animation: isArabic ? 'none' : 'heroFloat 20s ease-in-out infinite',
+                  objectPosition: isRTL ? 'center' : 'center',
+                  animation: isRTL ? 'none' : 'heroFloat 20s ease-in-out infinite',
                   willChange: 'transform'
                 }} 
               />

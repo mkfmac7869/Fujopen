@@ -98,13 +98,13 @@ function MyApp(props) {
   };
 
   useEffect(() => {
-    // Set layout direction
-    const themeDir = curLang === 'ar' ? 'rtl' : 'ltr';
+    // Set layout direction for RTL languages (Arabic, Urdu, Persian/Farsi)
+    const themeDir = ['ar', 'ur', 'fa'].includes(curLang) ? 'rtl' : 'ltr';
     document.dir = themeDir;
     document.documentElement.setAttribute('lang', curLang);
     
-    // FORCE Tajawal font for Arabic - ABSOLUTE OVERRIDE
-    if (curLang === 'ar') {
+    // FORCE Tajawal font for Arabic, Urdu, and Persian/Farsi - ABSOLUTE OVERRIDE
+    if (['ar', 'ur', 'fa'].includes(curLang)) {
       document.body.style.fontFamily = 'Tajawal, sans-serif';
       document.documentElement.style.fontFamily = 'Tajawal, sans-serif';
       
@@ -135,7 +135,7 @@ function MyApp(props) {
     }
 
     // Set color mode and direction
-    if (themeType === 'light' || curLang === 'ar') {
+    if (themeType === 'light' || ['ar', 'ur', 'fa'].includes(curLang)) {
       setTheme({
         ...appTheme(themeName, themeType || defaultTheme, curLang),
         direction: themeDir

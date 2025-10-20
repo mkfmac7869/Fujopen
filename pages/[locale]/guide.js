@@ -66,7 +66,7 @@ function Guide() {
   const { t } = useTranslation('common');
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
-  const isArabic = router.locale === 'ar';
+  const isRTL = ['ar', 'ur', 'fa'].includes(router.locale);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -82,15 +82,22 @@ function Guide() {
         <title>
           {brand.name + ' - ' + t('ai-landing.guide_page_title')}
         </title>
-        {isArabic && (
-          <link
-            href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap"
-            rel="stylesheet"
-          />
+        {isRTL && (
+          <>
+            <link
+              href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap"
+              rel="stylesheet"
+            />
+            <style>{`
+              * {
+                font-family: 'Tajawal', sans-serif !important;
+              }
+            `}</style>
+          </>
         )}
       </Head>
       <CssBaseline />
-      <div className={classes.innerPage} style={isArabic ? { fontFamily: 'Tajawal, sans-serif' } : {}}>
+      <div className={classes.innerPage}>
         <section id="banner">
           <MediaBanner
             title={t('ai-landing.guide_banner_title')}
