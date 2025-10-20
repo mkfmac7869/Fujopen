@@ -458,7 +458,20 @@ function FoldersManagement() {
           body: JSON.stringify(emailPayload),
         });
         
-        const responseData = await emailResponse.json();
+        console.log('📧 Email response status:', emailResponse.status);
+        console.log('📧 Email response ok:', emailResponse.ok);
+        
+        let responseData = null;
+        const responseText = await emailResponse.text();
+        console.log('📧 Raw response:', responseText);
+        
+        try {
+          responseData = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          console.error('❌ Failed to parse response:', parseError);
+          responseData = { error: 'Invalid response format', raw: responseText };
+        }
+        
         console.log('📧 Email API response:', responseData);
         
         if (emailResponse.ok) {
