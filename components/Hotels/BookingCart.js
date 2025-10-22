@@ -108,34 +108,40 @@ function BookingCart() {
         confirmationNumbers: {}, // Will store { hotelId: confirmationNumber }
       };
       
-      // Save grouped booking
+      // Save grouped booking - this is the critical operation
       await addDoc(collection(db, 'hotelBookings'), bookingGroupDoc);
+      console.log('✅ Booking created successfully:', groupId);
       
-      // IMMEDIATELY REDUCE ROOM AVAILABILITY for each booking
-      for (const item of cartItems) {
-        const { getDoc, doc: firestoreDoc, updateDoc } = await import('firebase/firestore');
-        const hotelDoc = await getDoc(firestoreDoc(db, 'hotels', item.hotelId));
-        
-        if (hotelDoc.exists()) {
-          const hotelData = hotelDoc.data();
-          const rooms = hotelData.rooms || [];
-          const roomIndex = rooms.findIndex(r => r.name === item.roomType);
+      // IMMEDIATELY REDUCE ROOM AVAILABILITY for each booking (non-blocking)
+      try {
+        for (const item of cartItems) {
+          const { getDoc, doc: firestoreDoc, updateDoc } = await import('firebase/firestore');
+          const hotelDoc = await getDoc(firestoreDoc(db, 'hotels', item.hotelId));
           
-          if (roomIndex !== -1) {
-            const numberOfRoomsBooked = parseInt(item.numberOfRooms) || 1;
-            rooms[roomIndex].available = Math.max(0, (rooms[roomIndex].available || 0) - numberOfRoomsBooked);
+          if (hotelDoc.exists()) {
+            const hotelData = hotelDoc.data();
+            const rooms = hotelData.rooms || [];
+            const roomIndex = rooms.findIndex(r => r.name === item.roomType);
             
-            await updateDoc(firestoreDoc(db, 'hotels', item.hotelId), {
-              rooms: rooms,
-              roomsAvailable: rooms.reduce((sum, r) => sum + (r.available || 0), 0),
-            });
-            
-            console.log(`Reduced ${numberOfRoomsBooked} room(s) from ${item.roomType} at ${item.hotelName}`);
+            if (roomIndex !== -1) {
+              const numberOfRoomsBooked = parseInt(item.numberOfRooms) || 1;
+              rooms[roomIndex].available = Math.max(0, (rooms[roomIndex].available || 0) - numberOfRoomsBooked);
+              
+              await updateDoc(firestoreDoc(db, 'hotels', item.hotelId), {
+                rooms: rooms,
+                roomsAvailable: rooms.reduce((sum, r) => sum + (r.available || 0), 0),
+              });
+              
+              console.log(`✅ Reduced ${numberOfRoomsBooked} room(s) from ${item.roomType} at ${item.hotelName}`);
+            }
           }
         }
+      } catch (roomError) {
+        console.error('⚠️ Error updating room availability:', roomError);
+        // Don't fail the booking if room update fails
       }
 
-      // Send booking confirmation email via API
+      // Send booking confirmation email via API (non-blocking)
       const bookingData = {
         hotelName: cartItems.length > 1 ? `${cartItems.length} Hotels` : cartItems[0].hotelName,
         location: cartItems.length > 1 ? 'Multiple Locations' : cartItems[0].location,
@@ -148,34 +154,36 @@ function BookingCart() {
         roomingList: cartItems.length === 1 ? cartItems[0].roomingList : null,
       };
       
-      try {
-        const emailResponse = await fetch('https://www.fujopen.com/api/send-hotel-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'confirmation',
-            email: user.email,
-            name: cartItems[0].userName,
-            bookingData: bookingData,
-          }),
-        });
-        
+      // Send email asynchronously - don't wait for it
+      fetch('https://www.fujopen.com/api/send-hotel-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'confirmation',
+          email: user.email,
+          name: cartItems[0].userName,
+          bookingData: bookingData,
+        }),
+      }).then(emailResponse => {
         if (emailResponse.ok) {
           console.log('✅ Hotel booking confirmation email sent to:', user.email);
         } else {
           console.error('❌ Failed to send booking confirmation email');
         }
-      } catch (emailError) {
+      }).catch(emailError => {
         console.error('❌ Error sending booking confirmation email:', emailError);
-      }
+      });
 
+      // Clear cart and show success
+      clearCart();
+      
       showDialog({
         type: 'success',
-        message: `Successfully submitted booking group with ${cartItems.length} reservation(s)! Rooms have been reserved. Awaiting OC review. Confirmation email sent!`,
-        onConfirm: clearCart,
+        message: `Successfully submitted booking group with ${cartItems.length} reservation(s)! Rooms have been reserved. Awaiting OC review.`,
       });
+      
     } catch (error) {
-      console.error('Error confirming bookings:', error);
+      console.error('❌ Error confirming bookings:', error);
       showDialog({
         type: 'error',
         message: 'Failed to confirm bookings. Please try again.',
