@@ -38,6 +38,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import DownloadIcon from '@mui/icons-material/Download';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import GetAppIcon from '@mui/icons-material/GetApp';
@@ -85,6 +87,7 @@ const statusConfig = {
 function VisaManagement() {
   const { classes } = useStyles();
   const theme = useTheme();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
@@ -176,7 +179,10 @@ function VisaManagement() {
 
   const handleUpdateStatus = async () => {
     if (!selectedApplication || !newStatus) {
-      alert('Please select a status');
+      showDialog({
+        type: 'warning',
+        message: 'Please select a status',
+      });
       return;
     }
 
@@ -194,7 +200,10 @@ function VisaManagement() {
       // If status is "additional", save the notes about required documents
       if (newStatus === 'additional') {
         if (!additionalNotes) {
-          alert('Please specify what additional documents are required');
+          showDialog({
+            type: 'warning',
+            message: 'Please specify what additional documents are required',
+          });
           setUploading(false);
           return;
         }
@@ -1693,6 +1702,8 @@ function VisaManagement() {
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Container>
   );
 }

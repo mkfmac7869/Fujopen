@@ -20,10 +20,13 @@ import DownloadIcon from '@mui/icons-material/Download';
 import CloseIcon from '@mui/icons-material/Close';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 
 function InvoiceGenerator({ booking, open, onClose }) {
   const theme = useTheme();
   const [generating, setGenerating] = useState(false);
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   if (!booking) return null;
 
@@ -82,7 +85,10 @@ function InvoiceGenerator({ booking, open, onClose }) {
       setGenerating(false);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      showDialog({
+        type: 'error',
+        message: 'Failed to generate PDF. Please try again.',
+      });
       setGenerating(false);
     }
   };
@@ -613,6 +619,8 @@ function InvoiceGenerator({ booking, open, onClose }) {
            }
          `}</style>
       </DialogContent>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Dialog>
   );
 }

@@ -48,6 +48,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 import { db } from '../../lib/firebase';
 import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
@@ -88,6 +90,7 @@ const statusConfig = {
 function FoldersManagement() {
   const { classes } = useStyles();
   const theme = useTheme();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   const [folders, setFolders] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -155,7 +158,10 @@ function FoldersManagement() {
 
   const handleCreateFolder = async () => {
     if (!folderName.trim()) {
-      alert('Please enter folder name');
+      showDialog({
+        type: 'warning',
+        message: 'Please enter folder name',
+      });
       return;
     }
 
@@ -178,11 +184,17 @@ function FoldersManagement() {
 
   const handleAddToFolder = async (type) => {
     if (type === 'individual' && selectedApplicants.length === 0) {
-      alert('Please select at least one applicant');
+      showDialog({
+        type: 'warning',
+        message: 'Please select at least one applicant',
+      });
       return;
     }
     if (type === 'team' && selectedTeams.length === 0) {
-      alert('Please select at least one team');
+      showDialog({
+        type: 'warning',
+        message: 'Please select at least one team',
+      });
       return;
     }
 
@@ -257,7 +269,10 @@ function FoldersManagement() {
     const folderApps = applications.filter(app => folder.applicationIds?.includes(app.id));
     
     if (folderApps.length === 0) {
-      alert('No applications in this folder to export');
+      showDialog({
+        type: 'info',
+        message: 'No applications in this folder to export',
+      });
       return;
     }
 
@@ -376,7 +391,10 @@ function FoldersManagement() {
       }
 
       if (count === 0) {
-        alert(`No ${documentType} found in this folder`);
+        showDialog({
+          type: 'info',
+          message: `No ${documentType} found in this folder`,
+        });
         setDownloadingDocs(false);
         return;
       }
@@ -395,7 +413,10 @@ function FoldersManagement() {
 
   const handleEditStatus = async () => {
     if (!selectedApplication || !newStatus) {
-      alert('Please select a status');
+      showDialog({
+        type: 'warning',
+        message: 'Please select a status',
+      });
       return;
     }
 
@@ -411,7 +432,10 @@ function FoldersManagement() {
       // If status is "additional", save the notes about required documents
       if (newStatus === 'additional') {
         if (!additionalNotes) {
-          alert('Please specify what additional documents are required');
+          showDialog({
+            type: 'warning',
+            message: 'Please specify what additional documents are required',
+          });
           setUploading(false);
           return;
         }
@@ -1337,6 +1361,8 @@ function FoldersManagement() {
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Box>
   );
 }

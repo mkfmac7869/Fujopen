@@ -38,6 +38,8 @@ import { makeStyles } from 'tss-react/mui';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -87,6 +89,7 @@ const statusConfig = {
 function BookingManagement() {
   const { classes } = useStyles();
   const theme = useTheme();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
@@ -205,7 +208,10 @@ function BookingManagement() {
           const allNumbersEntered = uniqueHotels.every(hotelId => confirmationNumbers[hotelId]?.trim());
           
           if (!allNumbersEntered) {
-            alert('Please enter confirmation numbers for all hotels');
+            showDialog({
+              type: 'warning',
+              message: 'Please enter confirmation numbers for all hotels',
+            });
             return;
           }
           
@@ -213,7 +219,10 @@ function BookingManagement() {
         } else {
           // Single booking
           if (!confirmationNumber.trim()) {
-            alert('Please enter a confirmation number for confirmed bookings');
+            showDialog({
+              type: 'warning',
+              message: 'Please enter a confirmation number for confirmed bookings',
+            });
             return;
           }
           updateData.confirmationNumber = confirmationNumber.trim();
@@ -590,7 +599,10 @@ function BookingManagement() {
       doc.save(`Booking_${booking.userName}_${new Date().toLocaleDateString()}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      showDialog({
+        type: 'error',
+        message: 'Failed to generate PDF. Please try again.',
+      });
     }
   };
 
@@ -1511,7 +1523,10 @@ function BookingManagement() {
                             'payOnSiteRequest.approvedBy': 'admin',
                             'payOnSiteRequest.approvedAt': new Date().toISOString(),
                           });
-                          alert('Pay on site request approved!');
+                          showDialog({
+                            type: 'success',
+                            message: 'Pay on site request approved!',
+                          });
                           fetchBookings();
                           setDetailsDialog(false);
                         }}
@@ -1529,7 +1544,10 @@ function BookingManagement() {
                             'payOnSiteRequest.rejectedBy': 'admin',
                             'payOnSiteRequest.rejectedAt': new Date().toISOString(),
                           });
-                          alert('Pay on site request rejected!');
+                          showDialog({
+                            type: 'success',
+                            message: 'Pay on site request rejected!',
+                          });
                           fetchBookings();
                           setDetailsDialog(false);
                         }}
@@ -1618,6 +1636,8 @@ function BookingManagement() {
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Container>
   );
 }
