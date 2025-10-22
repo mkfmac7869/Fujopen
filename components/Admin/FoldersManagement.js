@@ -115,6 +115,7 @@ function FoldersManagement() {
   const [uploading, setUploading] = useState(false);
   const visaFileRef = React.useRef(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
     fetchData();
@@ -636,8 +637,39 @@ function FoldersManagement() {
                 </IconButton>
               </Box>
 
+              {/* Status Filter Tabs */}
+              <Box sx={{ mb: 3 }}>
+                <Tabs
+                  value={filterStatus}
+                  onChange={(e, val) => setFilterStatus(val)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{
+                    '& .MuiTab-root': {
+                      minWidth: 'auto',
+                      px: 3,
+                      fontWeight: 600,
+                    },
+                    '& .Mui-selected': {
+                      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))',
+                    }
+                  }}
+                >
+                  <Tab label="ALL" value="all" />
+                  <Tab label="PENDING" value="pending" />
+                  <Tab label="REVIEWING BY OC" value="reviewing" />
+                  <Tab label="SUBMITTED TO GRFA" value="submitted" />
+                  <Tab label="IN PROCESS" value="processing" />
+                  <Tab label="ADDITIONAL DOCS REQUIRED" value="additional" />
+                  <Tab label="APPROVED" value="approved" />
+                  <Tab label="REJECTED" value="rejected" />
+                </Tabs>
+              </Box>
+
               {/* Applications Table */}
-              {getFolderApplications(folders[activeFolder]).length === 0 ? (
+              {getFolderApplications(folders[activeFolder]).filter(app => 
+                filterStatus === 'all' || app.status === filterStatus
+              ).length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 10, background: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ opacity: 0.6 }}>
                     No applications in this folder
@@ -665,7 +697,9 @@ function FoldersManagement() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {getFolderApplications(folders[activeFolder]).map((app) => (
+                      {getFolderApplications(folders[activeFolder])
+                        .filter(app => filterStatus === 'all' || app.status === filterStatus)
+                        .map((app) => (
                         <TableRow key={app.id} hover>
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
