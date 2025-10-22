@@ -247,7 +247,7 @@ function BookingManagement() {
           };
       
       try {
-        const emailResponse = await fetch('/api/send-hotel-email', {
+        const emailResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendHotelEmail', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -109,7 +109,7 @@ function Register() {
       
       // Send welcome email via API
       try {
-        const emailResponse = await fetch('/api/send-welcome-email', {
+        const emailResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendWelcomeEmail', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -130,11 +130,12 @@ function Register() {
 
       // Send admin notification via API
       try {
-        const adminNotificationResponse = await fetch('/api/send-admin-notification', {
+        const adminNotificationResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendAdminNotification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            newUser: {
+            adminEmail: 'mk7869148@gmail.com',
+            newUserData: {
               name: values.fullName,
               email: values.email,
               phone: fullPhoneNumber,

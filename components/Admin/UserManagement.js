@@ -161,7 +161,7 @@ function UserManagement() {
       // Send approval email via API
       try {
         console.log('📧 Sending approval email to:', user.email);
-        const emailResponse = await fetch('/api/send-account-approved', {
+        const emailResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendAccountApproved', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

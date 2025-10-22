@@ -477,7 +477,7 @@ function FoldersManagement() {
         }
 
         console.log('📧 Sending email with payload:', emailPayload);
-        const emailResponse = await fetch('/api/send-visa-email', {
+        const emailResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendVisaEmail', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(emailPayload),
