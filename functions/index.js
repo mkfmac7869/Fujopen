@@ -467,10 +467,10 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
         message: `We regret to inform you that your visa application has been rejected.`
       },
       pending: {
-        title: 'VISA APPLICATION PENDING',
-        icon: '⏳',
+        title: 'APPLICATION SUBMITTED SUCCESSFULLY',
+        icon: '✅',
         color: 'status-pending',
-        message: `Your visa application is pending review.`
+        message: `Your visa application has been submitted successfully and is now pending review by the Organizing Committee.`
       },
       processing: {
         title: 'VISA IN PROCESS',
