@@ -507,34 +507,69 @@ function BookingManagement() {
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Header Background
+      doc.setFillColor(30, 58, 138); // Dark blue
+      doc.rect(0, 0, pageWidth, 45, 'F');
       
       // Title
-      doc.setFontSize(24);
-      doc.setTextColor(99, 102, 241);
-      doc.text('🏨 Hotel Booking Report', pageWidth / 2, 20, { align: 'center' });
+      doc.setFontSize(26);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont(undefined, 'bold');
+      doc.text('HOTEL BOOKING REPORT', pageWidth / 2, 20, { align: 'center' });
       
-      // Team Info Box
-      doc.setFillColor(245, 247, 250);
-      doc.rect(10, 30, pageWidth - 20, 35, 'F');
-      
+      // Subtitle
       doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text('13th Fujairah Open International Taekwondo Championships 2026', pageWidth / 2, 30, { align: 'center' });
+      
+      // Report Date
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, 38, { align: 'center' });
+      
+      let yPos = 55;
+      
+      // Team Info Section
+      doc.setFillColor(245, 247, 250);
+      doc.rect(10, yPos, pageWidth - 20, 40, 'F');
+      
+      // Border for info box
+      doc.setDrawColor(99, 102, 241);
+      doc.setLineWidth(0.5);
+      doc.rect(10, yPos, pageWidth - 20, 40);
+      
+      yPos += 10;
+      
+      doc.setFontSize(11);
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'bold');
-      doc.text(`Team/Club:`, 15, 40);
+      doc.text('Team/Club:', 15, yPos);
       doc.setFont(undefined, 'normal');
-      doc.text(`${booking.userName || 'N/A'}`, 50, 40);
+      doc.text(booking.userName || 'N/A', 60, yPos);
       
+      yPos += 8;
       doc.setFont(undefined, 'bold');
-      doc.text(`Email:`, 15, 48);
+      doc.text('Email:', 15, yPos);
       doc.setFont(undefined, 'normal');
-      doc.text(`${booking.userEmail || 'N/A'}`, 50, 48);
+      doc.text(booking.userEmail || 'N/A', 60, yPos);
       
+      yPos += 8;
       doc.setFont(undefined, 'bold');
-      doc.text(`Status:`, 15, 56);
+      doc.text('Booking Status:', 15, yPos);
       doc.setFont(undefined, 'normal');
-      doc.text(`${statusConfig[booking.status]?.label || booking.status}`, 50, 56);
+      doc.setTextColor(16, 185, 129); // Green for status
+      doc.text(statusConfig[booking.status]?.label || booking.status, 60, yPos);
+      doc.setTextColor(0, 0, 0);
       
-      let yPos = 75;
+      yPos += 8;
+      doc.setFont(undefined, 'bold');
+      doc.text('Booking ID:', 15, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.text(booking.groupId || booking.id || 'N/A', 60, yPos);
+      
+      yPos += 18;
       
       // Individual Bookings
       const bookings = booking.individualBookings || [booking];
@@ -548,39 +583,55 @@ function BookingManagement() {
           yPos = 20;
         }
         
-        // Reservation header
-        doc.setFontSize(14);
-        doc.setTextColor(99, 102, 241);
+        // Reservation Header with background
+        doc.setFillColor(99, 102, 241);
+        doc.rect(10, yPos - 3, pageWidth - 20, 10, 'F');
+        doc.setFontSize(13);
+        doc.setTextColor(255, 255, 255);
         doc.setFont(undefined, 'bold');
-        doc.text(`📋 Reservation ${idx + 1}`, 10, yPos);
+        doc.text(`RESERVATION ${idx + 1}`, 15, yPos + 4);
         doc.setFont(undefined, 'normal');
-        yPos += 10;
+        yPos += 12;
         
         // Hotel details table
         autoTable(doc, {
           startY: yPos,
-          head: [['Field', 'Value']],
+          head: [['Details', 'Information']],
           body: [
-            ['Hotel', individualBooking.hotelName || 'N/A'],
+            ['Hotel Name', individualBooking.hotelName || 'N/A'],
             ['Location', individualBooking.hotelLocation || 'N/A'],
             ['Room Type', individualBooking.roomType || 'N/A'],
-            ['Number of Rooms', individualBooking.numberOfRooms || 1],
-            ['Check-in', individualBooking.checkInDate ? new Date(individualBooking.checkInDate).toLocaleDateString() : 'N/A'],
-            ['Check-out', individualBooking.checkOutDate ? new Date(individualBooking.checkOutDate).toLocaleDateString() : 'N/A'],
-            ['Nights', individualBooking.numberOfNights || 0],
+            ['Number of Rooms', String(individualBooking.numberOfRooms || 1)],
+            ['Check-in Date', individualBooking.checkInDate ? new Date(individualBooking.checkInDate).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'],
+            ['Check-out Date', individualBooking.checkOutDate ? new Date(individualBooking.checkOutDate).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'],
+            ['Number of Nights', String(individualBooking.numberOfNights || 0)],
             ['Price per Night', `$${individualBooking.roomPrice || 0}`],
-            ['Total Price', `$${individualBooking.totalPrice || 0}`],
+            ['Total Amount', `$${individualBooking.totalPrice || 0}`],
           ],
           theme: 'grid',
-          headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
-          styles: { fontSize: 10, cellPadding: 3 },
+          headStyles: { 
+            fillColor: [30, 58, 138], 
+            textColor: 255, 
+            fontStyle: 'bold',
+            fontSize: 11,
+            halign: 'center'
+          },
+          styles: { 
+            fontSize: 10, 
+            cellPadding: 4,
+            lineColor: [200, 200, 200],
+            lineWidth: 0.1
+          },
           columnStyles: {
-            0: { fontStyle: 'bold', cellWidth: 60 },
-            1: { cellWidth: 120 }
+            0: { fontStyle: 'bold', cellWidth: 65, fillColor: [249, 250, 251] },
+            1: { cellWidth: 115 }
+          },
+          alternateRowStyles: {
+            fillColor: [255, 255, 255]
           }
         });
         
-        yPos = doc.lastAutoTable.finalY + 10;
+        yPos = doc.lastAutoTable.finalY + 12;
         
         // Guest List
         if (individualBooking.guests && individualBooking.guests.length > 0) {
@@ -590,27 +641,49 @@ function BookingManagement() {
             yPos = 20;
           }
           
-          doc.setFontSize(12);
-          doc.setTextColor(0, 0, 0);
+          // Guest List Header
+          doc.setFillColor(16, 185, 129); // Green
+          doc.rect(10, yPos - 3, pageWidth - 20, 8, 'F');
+          doc.setFontSize(11);
+          doc.setTextColor(255, 255, 255);
           doc.setFont(undefined, 'bold');
-          doc.text('👥 Guest List:', 10, yPos);
+          doc.text('GUEST LIST', 15, yPos + 3);
           doc.setFont(undefined, 'normal');
-          yPos += 7;
+          yPos += 10;
           
           const guestData = individualBooking.guests.map((guest, gIdx) => [
-            gIdx + 1,
+            String(gIdx + 1),
             guest.fullName || 'N/A',
             guest.passportNumber || 'N/A',
-            guest.roomNumber || 'N/A',
+            `Room ${guest.roomNumber || 'N/A'}`,
           ]);
           
           autoTable(doc, {
             startY: yPos,
-            head: [['#', 'Guest Name', 'Passport Number', 'Room']],
+            head: [['No.', 'Guest Name', 'Passport Number', 'Room Assignment']],
             body: guestData,
             theme: 'striped',
-            headStyles: { fillColor: [99, 102, 241], fontStyle: 'bold' },
-            styles: { fontSize: 9, cellPadding: 2 },
+            headStyles: { 
+              fillColor: [16, 185, 129],
+              fontStyle: 'bold',
+              fontSize: 10,
+              halign: 'center'
+            },
+            styles: { 
+              fontSize: 9, 
+              cellPadding: 3,
+              lineColor: [200, 200, 200],
+              lineWidth: 0.1
+            },
+            columnStyles: {
+              0: { halign: 'center', cellWidth: 15 },
+              1: { cellWidth: 70 },
+              2: { cellWidth: 50 },
+              3: { halign: 'center', cellWidth: 35 }
+            },
+            alternateRowStyles: {
+              fillColor: [249, 250, 251]
+            }
           });
           
           yPos = doc.lastAutoTable.finalY + 15;
@@ -618,22 +691,43 @@ function BookingManagement() {
       }
       
       // Add page if needed for total
-      if (yPos > 260) {
+      if (yPos > 250) {
         doc.addPage();
         yPos = 20;
       }
       
-      // Grand Total
-      doc.setFillColor(99, 102, 241);
-      doc.rect(10, yPos, pageWidth - 20, 15, 'F');
-      doc.setFontSize(16);
+      // Grand Total Section
+      yPos += 5;
+      doc.setFillColor(30, 58, 138);
+      doc.rect(10, yPos - 3, pageWidth - 20, 18, 'F');
+      doc.setFontSize(18);
       doc.setTextColor(255, 255, 255);
       doc.setFont(undefined, 'bold');
-      doc.text(`Grand Total: $${booking.totalPrice}`, pageWidth / 2, yPos + 10, { align: 'center' });
+      doc.text(`GRAND TOTAL: $${booking.totalPrice}`, pageWidth / 2, yPos + 9, { align: 'center' });
       
-      // Save PDF
-      const fileName = `Booking_${booking.userName?.replace(/\s+/g, '_')}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+      // Footer
+      yPos = pageHeight - 20;
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.setFont(undefined, 'normal');
+      doc.text('13th Fujairah Open International Taekwondo Championships 2026', pageWidth / 2, yPos, { align: 'center' });
+      doc.text('www.fujopen.com | info@fujairahopen.com', pageWidth / 2, yPos + 5, { align: 'center' });
+      
+      // Divider line above footer
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.5);
+      doc.line(20, yPos - 5, pageWidth - 20, yPos - 5);
+      
+      // Save PDF with better filename
+      const dateStr = new Date().toISOString().split('T')[0];
+      const fileName = `Hotel_Booking_${booking.userName?.replace(/\s+/g, '_')}_${dateStr}.pdf`;
       doc.save(fileName);
+      
+      // Show success dialog
+      showDialog({
+        type: 'success',
+        message: 'PDF downloaded successfully!',
+      });
     } catch (error) {
       console.error('Error generating PDF:', error);
       console.error('Error details:', error.message, error.stack);
