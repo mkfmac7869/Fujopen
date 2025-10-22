@@ -223,7 +223,7 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
   }
 
   try {
-    const { email, name, type, status, visaDocumentUrl, visaDocumentData, applicantName } = req.body;
+    const { email, name, type, status, visaDocumentUrl, visaDocumentData, applicantName, additionalNotes } = req.body;
 
     if (!email || !name) {
       return res.status(400).json({ error: 'Email and name are required' });
@@ -232,78 +232,209 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
     let subject = 'Visa Application Update - Fujairah Open 2026';
     let html = '';
     let attachments = [];
+    
+    // Modern glassmorphism email base template
+    const emailBaseStyle = `
+      <style>
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+          line-height: 1.6; 
+          color: #1f2937;
+          margin: 0;
+          padding: 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .email-wrapper {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 40px 20px;
+          min-height: 100vh;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+          background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+          color: white;
+          padding: 40px 30px;
+          text-align: center;
+          position: relative;
+        }
+        .logo {
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 20px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 12px 24px;
+          border-radius: 25px;
+          font-weight: bold;
+          font-size: 16px;
+          margin: 20px 0;
+        }
+        .status-approved { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .status-rejected { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .status-pending { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .status-processing { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .status-additional { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .status-reviewing { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+        .status-submitted { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+        .glass-box {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(10px);
+          padding: 25px;
+          border-radius: 15px;
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          margin: 20px 0;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .note-box {
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+          border-left: 4px solid #ef4444;
+          padding: 20px;
+          border-radius: 10px;
+          margin: 20px 0;
+        }
+        .button {
+          background: linear-gradient(135deg, #6366f1, #4f46e5);
+          color: white;
+          padding: 16px 40px;
+          text-decoration: none;
+          border-radius: 12px;
+          display: inline-block;
+          font-weight: bold;
+          font-size: 16px;
+          box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+          transition: all 0.3s;
+        }
+        .footer {
+          background: linear-gradient(135deg, #1e293b, #0f172a);
+          color: rgba(255, 255, 255, 0.7);
+          text-align: center;
+          padding: 30px;
+          font-size: 13px;
+        }
+      </style>
+    `;
 
+    // Status-specific configurations
+    const statusConfig = {
+      approved: {
+        title: 'VISA APPROVED',
+        icon: '✅',
+        color: 'status-approved',
+        message: `Congratulations! Your visa application has been approved.`
+      },
+      rejected: {
+        title: 'VISA APPLICATION REJECTED',
+        icon: '❌',
+        color: 'status-rejected',
+        message: `We regret to inform you that your visa application has been rejected.`
+      },
+      pending: {
+        title: 'VISA APPLICATION PENDING',
+        icon: '⏳',
+        color: 'status-pending',
+        message: `Your visa application is pending review.`
+      },
+      processing: {
+        title: 'VISA IN PROCESS',
+        icon: '⚙️',
+        color: 'status-processing',
+        message: `Your visa application is currently being processed.`
+      },
+      reviewing: {
+        title: 'UNDER OC REVIEW',
+        icon: '🔍',
+        color: 'status-reviewing',
+        message: `Your visa application is being reviewed by the Organizing Committee.`
+      },
+      submitted: {
+        title: 'SUBMITTED TO GRFA',
+        icon: '📤',
+        color: 'status-submitted',
+        message: `Your visa application has been submitted to the GRFA for processing.`
+      },
+      additional: {
+        title: 'ADDITIONAL DOCUMENTS REQUIRED',
+        icon: '📎',
+        color: 'status-additional',
+        message: `Additional documents are required for your visa application.`
+      }
+    };
+
+    const currentStatus = statusConfig[status] || statusConfig.pending;
+    
     // If status is approved and we have a visa document
     if (status === 'approved' && (visaDocumentUrl || visaDocumentData)) {
-      subject = '🎉 Your Visa is Approved! - Fujairah Open 2026';
+      subject = '✅ Your Visa is Approved! - Fujairah Open 2026';
       
       html = `
         <!DOCTYPE html>
         <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; }
-            .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 50px 30px; text-align: center; }
-            .content { background: #f8f9fa; padding: 40px 30px; }
-            .success-box { background: #d1fae5; padding: 30px; border-radius: 10px; border: 2px solid #10b981; margin: 20px 0; text-align: center; }
-            .button { background: #10b981; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 20px 0; font-weight: bold; font-size: 18px; }
-          </style>
-        </head>
+        <head>${emailBaseStyle}</head>
         <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0; font-size: 48px;">🎉</h1>
-              <h2 style="margin: 15px 0; font-size: 32px;">Visa Approved!</h2>
-              <p style="margin: 0; font-size: 18px;">Your journey to Fujairah Open 2026 is confirmed</p>
-            </div>
-            
-            <div class="content">
-              <h2 style="color: #1e3a8a;">Congratulations ${name}! 🥋</h2>
-              <p style="font-size: 16px;">We're excited to inform you that your visa application for the <strong>13th Fujairah Open International Taekwondo Championships 2026</strong> has been <strong style="color: #10b981;">APPROVED</strong>!</p>
-              
-              <div class="success-box">
-                <h3 style="margin-top: 0; color: #065f46; font-size: 24px;">✅ Visa Status: APPROVED</h3>
-                <p style="font-size: 16px; margin: 15px 0;">Your visa document is attached to this email</p>
-                <p style="font-size: 14px; margin: 10px 0; color: #065f46;">📎 <strong>Attached:</strong> Visa_${applicantName || name}.pdf</p>
+          <div class="email-wrapper">
+            <div class="email-container">
+              <div class="header">
+                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Fujairah Open 2026" class="logo" />
+                <h1 style="margin: 10px 0; font-size: 32px; font-weight: 800;">FUJAIRAH OPEN 2026</h1>
+                <p style="margin: 5px 0; font-size: 14px; opacity: 0.9;">13th International Taekwondo Championships</p>
               </div>
               
-              <div style="background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #1e3a8a;">📋 Important Instructions:</h3>
-                <ol style="color: #374151; line-height: 1.8;">
-                  <li><strong>Download the attached visa:</strong> The PDF document is attached to this email</li>
-                  <li><strong>Print the document:</strong> Bring a printed copy when traveling to the UAE</li>
-                  <li><strong>Keep it accessible:</strong> You'll need to present it at immigration</li>
-                  <li><strong>Check validity:</strong> Ensure the visa dates match your travel plans</li>
-                </ol>
-              </div>
-              
-              <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h4 style="margin: 0 0 10px 0; color: #1e40af;">🎯 Ready for the Championship?</h4>
-                <p style="margin: 10px 0; color: #1e40af;">Complete your preparations:</p>
-                <div style="margin: 15px 0;">
-                  <a href="${APP_URL}/hotel" style="background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px; font-weight: bold;">🏨 Book Hotel</a>
-                  <a href="${APP_URL}/transportation" style="background: #8b5cf6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px; font-weight: bold;">🚗 Arrange Transport</a>
+              <div class="content">
+                <h2 style="color: #1e3a8a; font-size: 28px; margin-bottom: 10px;">Hello ${name}! 👋</h2>
+                
+                <div class="glass-box" style="text-align: center;">
+                  <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
+                  <span class="status-badge status-approved">VISA APPROVED</span>
+                  <p style="font-size: 18px; color: #059669; font-weight: 600; margin: 15px 0;">Your journey to Fujairah is confirmed!</p>
+                </div>
+                
+                <p style="font-size: 16px; line-height: 1.8;">
+                  Congratulations! Your visa application for the <strong>13th Fujairah Open International Taekwondo Championships 2026</strong> has been <strong style="color: #10b981;">APPROVED</strong>!
+                </p>
+                
+                <div class="glass-box">
+                  <h3 style="margin-top: 0; color: #1e3a8a;">📎 Visa Document Attached</h3>
+                  <p style="margin: 10px 0;">Your approved visa document is attached to this email as a PDF file.</p>
+                  <p style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; font-weight: 600; color: #059669;">
+                    📄 Filename: Visa_${applicantName || name}.pdf
+                  </p>
+                </div>
+                
+                <div class="glass-box">
+                  <h3 style="margin-top: 0; color: #1e3a8a;">📋 Important Instructions</h3>
+                  <ol style="color: #374151; line-height: 2; margin: 15px 0;">
+                    <li><strong>Download</strong> the attached PDF document</li>
+                    <li><strong>Print</strong> a copy to bring when traveling</li>
+                    <li><strong>Present</strong> it at UAE immigration</li>
+                    <li><strong>Verify</strong> all details are correct</li>
+                  </ol>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <p style="font-size: 18px; color: #1e3a8a; font-weight: 600; margin-bottom: 15px;">Complete Your Championship Preparation</p>
+                  <a href="${APP_URL}/en/hotel" class="button" style="margin: 5px;">🏨 Book Hotel</a>
+                  <a href="${APP_URL}/en/transportation" class="button" style="margin: 5px;">🚗 Transportation</a>
                 </div>
               </div>
               
-              <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Important Reminders:</h4>
-                <ul style="margin: 10px 0; padding-left: 20px; color: #856404;">
-                  <li>Visa is valid for entry into the UAE only</li>
-                  <li>Must be presented at immigration counter</li>
-                  <li>Keep digital and physical copies</li>
-                  <li>Ensure your passport is valid for 6+ months</li>
-                </ul>
+              <div class="footer">
+                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 15px;" />
+                <p style="margin: 5px 0; font-size: 14px; font-weight: 600;">13th Fujairah Open 2026</p>
+                <p style="margin: 5px 0;">International Taekwondo Championships</p>
+                <p style="margin: 15px 0 5px; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
               </div>
-              
-              <p style="margin-top: 30px; text-align: center; font-size: 18px; color: #1e3a8a;"><strong>See you at the championship! 🥋🇦🇪</strong></p>
-              
-              <p style="margin-top: 30px; color: #6b7280;">Need help? Contact us at <a href="mailto:info@fujairahopen.com" style="color: #6366f1;">info@fujairahopen.com</a></p>
-            </div>
-            
-            <div style="text-align: center; padding: 30px; color: #9ca3af; font-size: 13px;">
-              <p>© 2026 Fujairah Open International Taekwondo Championships</p>
             </div>
           </div>
         </body>
@@ -363,21 +494,89 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
         console.log('⚠️ No visa document URL or data provided');
       }
     } else {
-      // For other statuses (pending, processing, rejected)
+      // For other statuses - beautiful glassmorphism template
+      subject = `${currentStatus.icon} ${currentStatus.title} - Fujairah Open 2026`;
+      
       html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 40px 30px; text-align: center;">
-            <h2 style="margin: 0; font-size: 28px;">Visa Application Update</h2>
-          </div>
-          <div style="background: #f8f9fa; padding: 40px 30px;">
-            <h2>Hello ${name}!</h2>
-            <p>Your visa application has been updated.</p>
-            <p><strong>Status:</strong> <span style="color: #6366f1; font-weight: bold; text-transform: uppercase;">${status || 'Processing'}</span></p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${APP_URL}/visa" style="background: #6366f1; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">View Details</a>
+        <!DOCTYPE html>
+        <html>
+        <head>${emailBaseStyle}</head>
+        <body>
+          <div class="email-wrapper">
+            <div class="email-container">
+              <div class="header">
+                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Fujairah Open 2026" class="logo" />
+                <h1 style="margin: 10px 0; font-size: 32px; font-weight: 800;">FUJAIRAH OPEN 2026</h1>
+                <p style="margin: 5px 0; font-size: 14px; opacity: 0.9;">13th International Taekwondo Championships</p>
+              </div>
+              
+              <div class="content">
+                <h2 style="color: #1e3a8a; font-size: 28px; margin-bottom: 10px;">Hello ${name}! 👋</h2>
+                
+                <div class="glass-box" style="text-align: center;">
+                  <div style="font-size: 48px; margin-bottom: 15px;">${currentStatus.icon}</div>
+                  <span class="status-badge ${currentStatus.color}">${currentStatus.title}</span>
+                  <p style="font-size: 16px; margin: 15px 0; line-height: 1.8;">${currentStatus.message}</p>
+                </div>
+                
+                ${additionalNotes ? `
+                  <div class="note-box">
+                    <h3 style="margin-top: 0; color: #dc2626; font-size: 18px;">📝 Admin Notes:</h3>
+                    <p style="margin: 10px 0; font-size: 15px; color: #991b1b; line-height: 1.8; white-space: pre-wrap;">${additionalNotes}</p>
+                  </div>
+                ` : ''}
+                
+                ${status === 'additional' ? `
+                  <div class="glass-box">
+                    <h3 style="margin-top: 0; color: #dc2626;">⚠️ Action Required</h3>
+                    <p style="margin: 10px 0; font-size: 15px; line-height: 1.8;">
+                      Please upload the requested additional documents through your dashboard to continue the visa application process.
+                    </p>
+                    <div style="text-align: center; margin: 20px 0;">
+                      <a href="${APP_URL}/en/visa" class="button">Upload Documents</a>
+                    </div>
+                  </div>
+                ` : ''}
+                
+                ${status === 'rejected' ? `
+                  <div class="glass-box">
+                    <h3 style="margin-top: 0; color: #1e3a8a;">💡 Next Steps</h3>
+                    <p style="margin: 10px 0; font-size: 15px; line-height: 1.8;">
+                      If you have questions about this decision, please contact our support team at 
+                      <a href="mailto:info@fujairahopen.com" style="color: #6366f1; font-weight: 600;">info@fujairahopen.com</a>
+                    </p>
+                  </div>
+                ` : ''}
+                
+                ${status === 'reviewing' || status === 'submitted' || status === 'processing' ? `
+                  <div class="glass-box">
+                    <h3 style="margin-top: 0; color: #1e3a8a;">⏱️ What's Next?</h3>
+                    <p style="margin: 10px 0; font-size: 15px; line-height: 1.8;">
+                      Your application is progressing smoothly. You'll receive another email notification once the status changes.
+                      Please check your dashboard for real-time updates.
+                    </p>
+                  </div>
+                ` : ''}
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${APP_URL}/en/visa" class="button">View Application Status</a>
+                </div>
+                
+                <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+                  Questions? Contact us at <a href="mailto:info@fujairahopen.com" style="color: #6366f1; font-weight: 600;">info@fujairahopen.com</a>
+                </p>
+              </div>
+              
+              <div class="footer">
+                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 15px;" />
+                <p style="margin: 5px 0; font-size: 14px; font-weight: 600;">13th Fujairah Open 2026</p>
+                <p style="margin: 5px 0;">International Taekwondo Championships</p>
+                <p style="margin: 15px 0 5px; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+              </div>
             </div>
           </div>
-        </div>
+        </body>
+        </html>
       `;
     }
 
@@ -486,4 +685,5 @@ exports.sendAdminNotification = functions.https.onRequest(async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
+
 

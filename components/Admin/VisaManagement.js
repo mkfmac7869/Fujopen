@@ -246,6 +246,7 @@ function VisaManagement() {
           name: selectedApplication.fullNameEnglish,
           status: newStatus,
           applicantName: selectedApplication.fullNameEnglish,
+          additionalNotes: additionalNotes || updateData.additionalNotes || null,
         };
 
         // Include visa document URL if approved and document exists
