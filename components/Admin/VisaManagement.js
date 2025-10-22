@@ -833,13 +833,27 @@ function VisaManagement() {
               <Tabs
                 value={filterStatus}
                 onChange={(e, val) => setFilterStatus(val)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  '& .MuiTab-root': {
+                    minWidth: 'auto',
+                    px: 3,
+                    fontWeight: 600,
+                  },
+                  '& .Mui-selected': {
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))',
+                  }
+                }}
               >
-                <Tab label="All" value="all" />
-                <Tab label="Pending" value="pending" />
-                <Tab label="Processing" value="processing" />
-                <Tab label="Reviewing" value="reviewing" />
-                <Tab label="Approved" value="approved" />
-                <Tab label="Rejected" value="rejected" />
+                <Tab label="ALL" value="all" />
+                <Tab label="PENDING" value="pending" />
+                <Tab label="REVIEWING BY OC" value="reviewing" />
+                <Tab label="SUBMITTED TO GRFA" value="submitted" />
+                <Tab label="IN PROCESS" value="processing" />
+                <Tab label="ADDITIONAL DOCS REQUIRED" value="additional" />
+                <Tab label="APPROVED" value="approved" />
+                <Tab label="REJECTED" value="rejected" />
               </Tabs>
             </Box>
 
