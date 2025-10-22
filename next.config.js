@@ -8,6 +8,7 @@ module.exports = withImages({
   //  i18n,
   output: 'export', // Enable for Firebase Hosting static export
   trailingSlash: true,
+  distDir: '.next',
   images: {
     disableStaticImages: true,
     unoptimized: true
