@@ -38,6 +38,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 import PersonIcon from '@mui/icons-material/Person';
 import BadgeIcon from '@mui/icons-material/Badge';
 import EmailIcon from '@mui/icons-material/Email';
@@ -78,6 +80,7 @@ const useStyles = makeStyles()((theme) => ({
 function UserManagement() {
   const { classes } = useStyles();
   const theme = useTheme();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -180,7 +183,10 @@ function UserManagement() {
 
       // Refresh users list
       await fetchUsers();
-      alert(`✅ Account approved successfully!\n\nUser: ${user.fullName}\nEmail: ${user.email}\n\nApproval email has been sent.`);
+      showDialog({
+        type: 'success',
+        message: `Account approved successfully!\n\nUser: ${user.fullName}\nEmail: ${user.email}\n\nApproval email has been sent.`,
+      });
     } catch (error) {
       console.error('❌ Error approving user:', error);
       console.error('Error code:', error.code);
@@ -195,7 +201,10 @@ function UserManagement() {
         errorMessage = `Error: ${error.message}\n\nPlease check the console for more details.`;
       }
       
-      alert(errorMessage);
+      showDialog({
+        type: 'error',
+        message: errorMessage,
+      });
     }
   };
 
@@ -778,6 +787,8 @@ function UserManagement() {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Container>
   );
 }
