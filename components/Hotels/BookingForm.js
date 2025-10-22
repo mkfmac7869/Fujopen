@@ -25,6 +25,8 @@ import { useAuth } from '../../lib/AuthContext';
 import { useCart } from '../../lib/CartContext';
 import ClayDeco from '../Artworks/ClayDeco';
 import Title from '../Title';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 
 const useStyles = makeStyles({ uniqId: 'booking-form' })((theme) => ({
   decoration: {
@@ -152,6 +154,7 @@ function BookingForm({ hotel, room, onClose }) {
   const theme = useTheme();
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -184,7 +187,10 @@ function BookingForm({ hotel, room, onClose }) {
     if (name === 'numberOfRooms') {
       const requestedRooms = parseInt(value) || 1;
       if (requestedRooms > room.available) {
-        alert(`Only ${room.available} room(s) available for this room type!`);
+        showDialog({
+          type: 'warning',
+          message: `Only ${room.available} room(s) available for this room type!`,
+        });
         return;
       }
     }
@@ -231,12 +237,18 @@ function BookingForm({ hotel, room, onClose }) {
 
   const handleSubmit = async () => {
     if (!user) {
-      alert('Please log in to make a booking');
+      showDialog({
+        type: 'warning',
+        message: 'Please log in to make a booking',
+      });
       return;
     }
 
     if (!bookingData.checkIn || !bookingData.checkOut) {
-      alert('Please select check-in and check-out dates');
+      showDialog({
+        type: 'warning',
+        message: 'Please select check-in and check-out dates',
+      });
       return;
     }
 
@@ -245,7 +257,10 @@ function BookingForm({ hotel, room, onClose }) {
     for (let roomNum = 1; roomNum <= numRooms; roomNum++) {
       const roomGuests = guests.filter(g => g.roomNumber === roomNum && g.fullName && g.passportNumber);
       if (roomGuests.length === 0) {
-        alert(`Please add at least one guest for Room ${roomNum}`);
+        showDialog({
+          type: 'warning',
+          message: `Please add at least one guest for Room ${roomNum}`,
+        });
         return;
       }
     }
@@ -254,7 +269,10 @@ function BookingForm({ hotel, room, onClose }) {
     const validGuests = guests.filter(g => g.fullName && g.passportNumber);
 
     if (validGuests.length === 0) {
-      alert('Please add at least one guest with name and passport number');
+      showDialog({
+        type: 'warning',
+        message: 'Please add at least one guest with name and passport number',
+      });
       return;
     }
 
@@ -297,8 +315,11 @@ function BookingForm({ hotel, room, onClose }) {
     const success = addToCart(bookingItem);
     
     if (success) {
-      alert('Booking added to cart! Go to Cart tab to confirm your booking.');
-      onClose();
+      showDialog({
+        type: 'success',
+        message: 'Booking added to cart! Go to Cart tab to confirm your booking.',
+        onConfirm: onClose,
+      });
     }
   };
 
@@ -539,6 +560,8 @@ function BookingForm({ hotel, room, onClose }) {
           </Fade>
         </Paper>
       </Container>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </>
   );
 }

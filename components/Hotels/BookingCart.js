@@ -23,6 +23,8 @@ import { useAuth } from '../../lib/AuthContext';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useTranslation } from 'next-i18next';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 
 const useStyles = makeStyles({ uniqId: 'booking-cart' })((theme) => ({
   root: {
@@ -57,16 +59,23 @@ function BookingCart() {
   const theme = useTheme();
   const { cartItems, removeFromCart, clearCart, getTotalPrice } = useCart();
   const { user } = useAuth();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
   const [confirming, setConfirming] = useState(false);
 
   const handleConfirmAllBookings = async () => {
     if (!user) {
-      alert('Please log in to confirm bookings');
+      showDialog({
+        type: 'warning',
+        message: 'Please log in to confirm bookings',
+      });
       return;
     }
 
     if (cartItems.length === 0) {
-      alert('Cart is empty');
+      showDialog({
+        type: 'warning',
+        message: 'Cart is empty',
+      });
       return;
     }
 
@@ -160,11 +169,17 @@ function BookingCart() {
         console.error('❌ Error sending booking confirmation email:', emailError);
       }
 
-      alert(`Successfully submitted booking group with ${cartItems.length} reservation(s)! Rooms have been reserved. Awaiting OC review. Confirmation email sent!`);
-      clearCart();
+      showDialog({
+        type: 'success',
+        message: `Successfully submitted booking group with ${cartItems.length} reservation(s)! Rooms have been reserved. Awaiting OC review. Confirmation email sent!`,
+        onConfirm: clearCart,
+      });
     } catch (error) {
       console.error('Error confirming bookings:', error);
-      alert('Failed to confirm bookings. Please try again.');
+      showDialog({
+        type: 'error',
+        message: 'Failed to confirm bookings. Please try again.',
+      });
     } finally {
       setConfirming(false);
     }
@@ -270,6 +285,8 @@ function BookingCart() {
           </Box>
         </Grid>
       </Grid>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Box>
   );
 }

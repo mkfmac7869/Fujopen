@@ -27,6 +27,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import InvoiceGenerator from '../Admin/InvoiceGenerator';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 
 const useStyles = makeStyles({ uniqId: 'my-bookings' })((theme) => ({
   root: {
@@ -64,6 +66,7 @@ function MyBookings() {
   const { user } = useAuth();
   const { t } = useTranslation('common');
   const theme = useTheme();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,13 +133,19 @@ function MyBookings() {
         lastUpdated: new Date().toISOString(),
       });
 
-      alert('Payment proof uploaded successfully!');
-      setPaymentDialog(false);
+      showDialog({
+        type: 'success',
+        message: 'Payment proof uploaded successfully!',
+        onConfirm: () => setPaymentDialog(false),
+      });
       setPaymentFile(null);
       fetchMyBookings();
     } catch (error) {
       console.error('Error uploading payment:', error);
-      alert('Failed to upload payment proof');
+      showDialog({
+        type: 'error',
+        message: 'Failed to upload payment proof',
+      });
     } finally {
       setUploading(false);
     }
@@ -144,7 +153,10 @@ function MyBookings() {
 
   const handleRequestPayOnSite = async () => {
     if (!onSiteReason.trim() || !selectedBooking) {
-      alert('Please provide a reason for pay on site request');
+      showDialog({
+        type: 'warning',
+        message: 'Please provide a reason for pay on site request',
+      });
       return;
     }
 
@@ -161,13 +173,19 @@ function MyBookings() {
         lastUpdated: new Date().toISOString(),
       });
 
-      alert('Pay on site request submitted! Awaiting admin approval.');
-      setPayOnSiteDialog(false);
+      showDialog({
+        type: 'success',
+        message: 'Pay on site request submitted! Awaiting admin approval.',
+        onConfirm: () => setPayOnSiteDialog(false),
+      });
       setOnSiteReason('');
       fetchMyBookings();
     } catch (error) {
       console.error('Error requesting pay on site:', error);
-      alert('Failed to submit request');
+      showDialog({
+        type: 'error',
+        message: 'Failed to submit request',
+      });
     }
   };
 
@@ -623,6 +641,8 @@ function MyBookings() {
           setSelectedInvoice(null);
         }}
       />
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Box>
   );
 }
