@@ -149,7 +149,7 @@ function BookingCart() {
       };
       
       try {
-        const emailResponse = await fetch('/api/send-hotel-email', {
+        const emailResponse = await fetch('https://www.fujopen.com/api/send-hotel-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
