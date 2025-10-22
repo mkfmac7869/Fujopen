@@ -67,6 +67,11 @@ function Guide() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const isRTL = ['ar', 'ur', 'fa'].includes(router.locale);
+  
+  // Wait for router to be ready with locale
+  if (!router.isReady) {
+    return null;
+  }
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);

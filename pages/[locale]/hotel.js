@@ -31,6 +31,11 @@ function Hotel() {
   const { t } = useTranslation('common');
   const { cartCount } = useCart();
   const [activeTab, setActiveTab] = useState(0);
+  
+  // Wait for router to be ready with locale
+  if (!router.isReady) {
+    return null;
+  }
 
   // If there's an ID in the query, show hotel detail instead
   if (id) {

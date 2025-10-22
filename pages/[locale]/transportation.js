@@ -1,6 +1,7 @@
 import React, { Fragment, useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { Container, Box, Tabs, Tab } from '@mui/material';
 import { getStaticPaths, makeStaticProps } from 'lib/getStatic';
@@ -19,7 +20,13 @@ import imgAPI from 'public/images/imgAPI';
 function Transportation() {
   const { classes } = useSpacing();
   const { t } = useTranslation('common');
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
+  
+  // Wait for router to be ready with locale
+  if (!router.isReady) {
+    return null;
+  }
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);

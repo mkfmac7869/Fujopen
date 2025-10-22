@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 // Use this below for Server Side Render/Translation (SSR)
 // import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -17,6 +18,12 @@ import brand from 'public/text/brand';
 function Profile() {
   const { classes } = useSpacing();
   const { t } = useTranslation('common');
+  const router = useRouter();
+  
+  // Wait for router to be ready with locale
+  if (!router.isReady) {
+    return null;
+  }
 
   return (
     <Fragment>
