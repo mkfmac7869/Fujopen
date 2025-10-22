@@ -234,7 +234,8 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
     let attachments = [];
     
     // Modern glassmorphism email template - LANDSCAPE DESIGN matching website
-    const LOGO_URL = 'https://raw.githubusercontent.com/mkfmac7869/Fujopen/main/awrora-react/public/images/fujairah-logo.png';
+    // Using direct URL from your domain
+    const LOGO_URL = 'https://fujopen.com/images/fujairah-logo.png';
     
     const emailBaseStyle = `
       <style>
