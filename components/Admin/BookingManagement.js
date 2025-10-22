@@ -503,105 +503,143 @@ function BookingManagement() {
   const handleExportPDF = async (booking) => {
     try {
       const jsPDF = (await import('jspdf')).default;
-      await import('jspdf-autotable');
+      const autoTable = (await import('jspdf-autotable')).default;
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
       
-      // Add logo
-      doc.addImage('/images/13th Fuj. OITC.png', 'PNG', 10, 10, 30, 30);
-      
       // Title
-      doc.setFontSize(20);
-      doc.setTextColor(21, 82, 137);
-      doc.text('Hotel Booking Report', pageWidth / 2, 25, { align: 'center' });
+      doc.setFontSize(24);
+      doc.setTextColor(99, 102, 241);
+      doc.text('🏨 Hotel Booking Report', pageWidth / 2, 20, { align: 'center' });
       
-      // Team Info
+      // Team Info Box
+      doc.setFillColor(245, 247, 250);
+      doc.rect(10, 30, pageWidth - 20, 35, 'F');
+      
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      doc.text(`Team: ${booking.userName}`, 10, 50);
-      doc.text(`Email: ${booking.userEmail}`, 10, 57);
-      doc.text(`Status: ${statusConfig[booking.status]?.label || booking.status}`, 10, 64);
-      doc.text(`Created: ${new Date(booking.createdAt).toLocaleString()}`, 10, 71);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Team/Club:`, 15, 40);
+      doc.setFont(undefined, 'normal');
+      doc.text(`${booking.userName || 'N/A'}`, 50, 40);
       
-      let yPos = 80;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Email:`, 15, 48);
+      doc.setFont(undefined, 'normal');
+      doc.text(`${booking.userEmail || 'N/A'}`, 50, 48);
+      
+      doc.setFont(undefined, 'bold');
+      doc.text(`Status:`, 15, 56);
+      doc.setFont(undefined, 'normal');
+      doc.text(`${statusConfig[booking.status]?.label || booking.status}`, 50, 56);
+      
+      let yPos = 75;
       
       // Individual Bookings
       const bookings = booking.individualBookings || [booking];
       
-      bookings.forEach((individualBooking, idx) => {
+      for (let idx = 0; idx < bookings.length; idx++) {
+        const individualBooking = bookings[idx];
+        
+        // Add page if needed
+        if (yPos > 240) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
         // Reservation header
         doc.setFontSize(14);
         doc.setTextColor(99, 102, 241);
-        doc.text(`Reservation ${idx + 1}`, 10, yPos);
-        yPos += 7;
+        doc.setFont(undefined, 'bold');
+        doc.text(`📋 Reservation ${idx + 1}`, 10, yPos);
+        doc.setFont(undefined, 'normal');
+        yPos += 10;
         
-        // Hotel details using autoTable
-        doc.autoTable({
+        // Hotel details table
+        autoTable(doc, {
           startY: yPos,
           head: [['Field', 'Value']],
           body: [
-            ['Hotel', individualBooking.hotelName],
-            ['Location', individualBooking.hotelLocation],
-            ['Room Type', individualBooking.roomType],
-            ['Number of Rooms', individualBooking.numberOfRooms],
-            ['Check-in', new Date(individualBooking.checkInDate).toLocaleDateString()],
-            ['Check-out', new Date(individualBooking.checkOutDate).toLocaleDateString()],
-            ['Nights', individualBooking.numberOfNights],
-            ['Price', `$${individualBooking.totalPrice}`],
+            ['Hotel', individualBooking.hotelName || 'N/A'],
+            ['Location', individualBooking.hotelLocation || 'N/A'],
+            ['Room Type', individualBooking.roomType || 'N/A'],
+            ['Number of Rooms', individualBooking.numberOfRooms || 1],
+            ['Check-in', individualBooking.checkInDate ? new Date(individualBooking.checkInDate).toLocaleDateString() : 'N/A'],
+            ['Check-out', individualBooking.checkOutDate ? new Date(individualBooking.checkOutDate).toLocaleDateString() : 'N/A'],
+            ['Nights', individualBooking.numberOfNights || 0],
+            ['Price per Night', `$${individualBooking.roomPrice || 0}`],
+            ['Total Price', `$${individualBooking.totalPrice || 0}`],
           ],
           theme: 'grid',
-          headStyles: { fillColor: [21, 82, 137], textColor: 255 },
-          styles: { fontSize: 10 },
+          headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
+          styles: { fontSize: 10, cellPadding: 3 },
+          columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 60 },
+            1: { cellWidth: 120 }
+          }
         });
         
         yPos = doc.lastAutoTable.finalY + 10;
         
         // Guest List
         if (individualBooking.guests && individualBooking.guests.length > 0) {
+          // Add page if needed
+          if (yPos > 220) {
+            doc.addPage();
+            yPos = 20;
+          }
+          
           doc.setFontSize(12);
           doc.setTextColor(0, 0, 0);
-          doc.text('Guest List:', 10, yPos);
-          yPos += 5;
+          doc.setFont(undefined, 'bold');
+          doc.text('👥 Guest List:', 10, yPos);
+          doc.setFont(undefined, 'normal');
+          yPos += 7;
           
           const guestData = individualBooking.guests.map((guest, gIdx) => [
             gIdx + 1,
-            guest.fullName,
-            guest.passportNumber,
-            `Room ${guest.roomNumber}`,
+            guest.fullName || 'N/A',
+            guest.passportNumber || 'N/A',
+            guest.roomNumber || 'N/A',
           ]);
           
-          doc.autoTable({
+          autoTable(doc, {
             startY: yPos,
-            head: [['#', 'Guest Name', 'Passport', 'Room']],
+            head: [['#', 'Guest Name', 'Passport Number', 'Room']],
             body: guestData,
             theme: 'striped',
-            headStyles: { fillColor: [99, 102, 241] },
-            styles: { fontSize: 9 },
+            headStyles: { fillColor: [99, 102, 241], fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 2 },
           });
           
           yPos = doc.lastAutoTable.finalY + 15;
         }
-        
-        // Check if new page needed
-        if (yPos > 250 && idx < bookings.length - 1) {
-          doc.addPage();
-          yPos = 20;
-        }
-      });
+      }
       
-      // Total
+      // Add page if needed for total
+      if (yPos > 260) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      // Grand Total
+      doc.setFillColor(99, 102, 241);
+      doc.rect(10, yPos, pageWidth - 20, 15, 'F');
       doc.setFontSize(16);
-      doc.setTextColor(21, 82, 137);
-      doc.text(`Grand Total: $${booking.totalPrice}`, pageWidth / 2, yPos, { align: 'center' });
+      doc.setTextColor(255, 255, 255);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Grand Total: $${booking.totalPrice}`, pageWidth / 2, yPos + 10, { align: 'center' });
       
       // Save PDF
-      doc.save(`Booking_${booking.userName}_${new Date().toLocaleDateString()}.pdf`);
+      const fileName = `Booking_${booking.userName?.replace(/\s+/g, '_')}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+      doc.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
+      console.error('Error details:', error.message, error.stack);
       showDialog({
         type: 'error',
-        message: 'Failed to generate PDF. Please try again.',
+        message: `Failed to generate PDF. Error: ${error.message || 'Unknown error'}`,
       });
     }
   };
