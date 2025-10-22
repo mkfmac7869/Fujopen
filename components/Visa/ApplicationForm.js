@@ -28,6 +28,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import SaveIcon from '@mui/icons-material/Save';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -298,6 +300,7 @@ function ApplicationForm({ onSubmit, onCancel }) {
   const { t } = useTranslation('common');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
   
   const [formData, setFormData] = useState({
     fullNameEnglish: '',
@@ -577,7 +580,10 @@ Use null for missing fields. Dates must be YYYY-MM-DD. Gender: male or female on
       
       const user = auth.currentUser;
       if (!user) {
-        alert('Please log in to submit application');
+        showDialog({
+          type: 'warning',
+          message: 'Please log in to submit application',
+        });
         setIsSubmitting(false);
         return;
       }
@@ -640,7 +646,10 @@ Use null for missing fields. Dates must be YYYY-MM-DD. Gender: male or female on
       console.error('Error message:', error.message);
       console.error('Full error:', error);
       console.error('===========================');
-      alert(`Failed to upload documents: ${error.message}`);
+      showDialog({
+        type: 'error',
+        message: `Failed to upload documents: ${error.message}`,
+      });
       setIsSubmitting(false);
     }
   };
@@ -1036,6 +1045,8 @@ Use null for missing fields. Dates must be YYYY-MM-DD. Gender: male or female on
           </Fade>
         </Paper>
       </Container>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </>
   );
 }

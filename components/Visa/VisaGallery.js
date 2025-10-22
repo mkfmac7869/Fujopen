@@ -41,6 +41,8 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/AuthContext';
 import { useTranslation } from 'next-i18next';
 import ApplicationForm from './ApplicationForm';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 
 const useStyles = makeStyles({ uniqId: 'visa-gallery' })(theme => ({
   root: {
@@ -171,6 +173,7 @@ function VisaGallery() {
   const { user } = useAuth();
   const { t } = useTranslation('common');
   const theme = useTheme();
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
   const [value, setValue] = useState('all');
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -251,7 +254,10 @@ function VisaGallery() {
 
   const handleUploadAdditionalDocs = async (files) => {
     if (!files || files.length === 0 || !selectedMember) {
-      alert('Please select files to upload');
+      showDialog({
+        type: 'warning',
+        message: 'Please select files to upload',
+      });
       return;
     }
 
@@ -295,8 +301,11 @@ function VisaGallery() {
       });
 
       console.log('Firestore updated successfully');
-      alert('Additional documents uploaded successfully!');
-      fetchApplications();
+      showDialog({
+        type: 'success',
+        message: 'Additional documents uploaded successfully!',
+        onConfirm: fetchApplications,
+      });
       handleCloseDetails();
     } catch (error) {
       console.error('=== Error uploading additional documents ===');
@@ -312,7 +321,10 @@ function VisaGallery() {
         errorMessage = error.message;
       }
       
-      alert(errorMessage);
+      showDialog({
+        type: 'error',
+        message: errorMessage,
+      });
     } finally {
       setUploadingAdditional(false);
     }
@@ -347,7 +359,10 @@ function VisaGallery() {
     const approvedApps = applications.filter(app => app.status === 'approved' && app.approvedVisaFile);
     
     if (approvedApps.length === 0) {
-      alert('No approved visas available to download');
+      showDialog({
+        type: 'info',
+        message: 'No approved visas available to download',
+      });
       return;
     }
 
@@ -363,10 +378,16 @@ function VisaGallery() {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
-      alert(`Successfully downloaded ${approvedApps.length} approved visa(s)!`);
+      showDialog({
+        type: 'success',
+        message: `Successfully downloaded ${approvedApps.length} approved visa(s)!`,
+      });
     } catch (error) {
       console.error('Error downloading all visas:', error);
-      alert('Some downloads may have failed. Please try individual downloads.');
+      showDialog({
+        type: 'warning',
+        message: 'Some downloads may have failed. Please try individual downloads.',
+      });
     } finally {
       setDownloadingAll(false);
     }
@@ -435,7 +456,10 @@ function VisaGallery() {
       setShowApplicationForm(false);
     } catch (error) {
       console.error('Error submitting application:', error);
-      alert('Failed to submit application. Please try again.');
+      showDialog({
+        type: 'error',
+        message: 'Failed to submit application. Please try again.',
+      });
     }
   };
 
@@ -1196,7 +1220,10 @@ function VisaGallery() {
                       if (input && input.files && input.files.length > 0) {
                         handleUploadAdditionalDocs(input.files);
                       } else {
-                        alert('Please select files to upload');
+                        showDialog({
+                          type: 'warning',
+                          message: 'Please select files to upload',
+                        });
                       }
                     }}
                   >
@@ -1217,6 +1244,8 @@ function VisaGallery() {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </Container>
   );
 }
