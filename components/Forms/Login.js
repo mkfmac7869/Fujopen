@@ -57,8 +57,9 @@ function Login() {
       setError('');
       setLoading(true);
       await login(values.email, values.password);
-      // Redirect to home page or previous page
-      router.push('/');
+      // Redirect to home page with locale preserved
+      const locale = router.query.locale || 'en';
+      router.push(`/${locale}`);
     } catch (error) {
       console.error('Login error:', error);
       // Show the actual error message from Firebase/AuthContext
