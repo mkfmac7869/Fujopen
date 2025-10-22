@@ -233,95 +233,165 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
     let html = '';
     let attachments = [];
     
-    // Modern glassmorphism email base template
+    // Modern glassmorphism email template - LANDSCAPE DESIGN matching website
     const emailBaseStyle = `
       <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Montserrat', Arial, sans-serif;
           line-height: 1.6; 
-          color: #1f2937;
+          color: #ffffff;
           margin: 0;
           padding: 0;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+          min-height: 100vh;
         }
         .email-wrapper {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          padding: 40px 20px;
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+          padding: 30px;
           min-height: 100vh;
         }
         .email-container {
-          max-width: 600px;
+          max-width: 900px;
           margin: 0 auto;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border-radius: 20px;
+          background: rgba(30, 41, 59, 0.4);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+          border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
         }
         .header {
-          background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           color: white;
-          padding: 40px 30px;
-          text-align: center;
-          position: relative;
+          padding: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .logo-section {
+          display: flex;
+          align-items: center;
+          gap: 20px;
         }
         .logo {
-          width: 80px;
-          height: 80px;
-          margin: 0 auto 20px;
+          width: 70px;
+          height: 70px;
+          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+        .header-text h1 {
+          font-size: 24px;
+          font-weight: 800;
+          margin: 0 0 5px 0;
+          background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .header-text p {
+          font-size: 13px;
+          opacity: 0.9;
+          margin: 0;
         }
         .content {
-          padding: 40px 30px;
+          padding: 40px;
+        }
+        .status-card {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+          border-radius: 16px;
+          padding: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+          margin: 20px 0;
         }
         .status-badge {
           display: inline-block;
-          padding: 12px 24px;
-          border-radius: 25px;
-          font-weight: bold;
-          font-size: 16px;
-          margin: 20px 0;
+          padding: 10px 24px;
+          border-radius: 20px;
+          font-weight: 700;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
-        .status-approved { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-        .status-rejected { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .status-pending { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .status-processing { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .status-additional { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .status-reviewing { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
-        .status-submitted { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+        .status-approved { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+        .status-rejected { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+        .status-pending { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
+        .status-processing { background: linear-gradient(135deg, #a855f7, #9333ea); color: white; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4); }
+        .status-additional { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+        .status-reviewing { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4); }
+        .status-submitted { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4); }
         .glass-box {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(10px);
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
           padding: 25px;
-          border-radius: 15px;
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
           margin: 20px 0;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
         }
         .note-box {
-          background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+          background: rgba(239, 68, 68, 0.1);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           border-left: 4px solid #ef4444;
           padding: 20px;
-          border-radius: 10px;
+          border-radius: 12px;
           margin: 20px 0;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);
         }
         .button {
           background: linear-gradient(135deg, #6366f1, #4f46e5);
           color: white;
-          padding: 16px 40px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 12px;
+          border-radius: 10px;
           display: inline-block;
-          font-weight: bold;
-          font-size: 16px;
-          box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+          font-weight: 700;
+          font-size: 15px;
+          box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
           transition: all 0.3s;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 15px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label {
+          font-weight: 600;
+          opacity: 0.7;
+          font-size: 14px;
+        }
+        .info-value {
+          font-weight: 700;
+          font-size: 15px;
+          text-align: right;
         }
         .footer {
-          background: linear-gradient(135deg, #1e293b, #0f172a);
-          color: rgba(255, 255, 255, 0.7);
-          text-align: center;
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(20px);
+          color: rgba(255, 255, 255, 0.6);
           padding: 30px;
-          font-size: 13px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin: 20px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .grid-2 { grid-template-columns: 1fr; }
+          .header { flex-direction: column; text-align: center; }
         }
       </style>
     `;
@@ -385,55 +455,75 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
         <body>
           <div class="email-wrapper">
             <div class="email-container">
+              <!-- Header -->
               <div class="header">
-                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Fujairah Open 2026" class="logo" />
-                <h1 style="margin: 10px 0; font-size: 32px; font-weight: 800;">FUJAIRAH OPEN 2026</h1>
-                <p style="margin: 5px 0; font-size: 14px; opacity: 0.9;">13th International Taekwondo Championships</p>
+                <div class="logo-section">
+                  <img src="https://www.fujopen.com/images/fujairah-logo.png" alt="Fujairah Open 2026" class="logo" />
+                  <div class="header-text">
+                    <h1>FUJAIRAH OPEN 2026</h1>
+                    <p>13th International Taekwondo Championships</p>
+                  </div>
+                </div>
+                <span class="status-badge status-approved">VISA APPROVED</span>
               </div>
               
+              <!-- Content -->
               <div class="content">
-                <h2 style="color: #1e3a8a; font-size: 28px; margin-bottom: 10px;">Hello ${name}! 👋</h2>
+                <h2 style="font-size: 26px; margin-bottom: 20px; font-weight: 800;">Hello ${name}! 👋</h2>
                 
-                <div class="glass-box" style="text-align: center;">
-                  <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
-                  <span class="status-badge status-approved">VISA APPROVED</span>
-                  <p style="font-size: 18px; color: #059669; font-weight: 600; margin: 15px 0;">Your journey to Fujairah is confirmed!</p>
+                <!-- Status Card -->
+                <div class="status-card">
+                  <div style="text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 60px; margin-bottom: 10px;">✅</div>
+                    <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">CONGRATULATIONS!</h3>
+                    <p style="font-size: 16px; opacity: 0.9;">Your visa has been approved successfully</p>
+                  </div>
+                  
+                  <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" style="color: #10b981;">✅ APPROVED</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Visa Document:</span>
+                    <span class="info-value">📎 Attached (PDF)</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Championship:</span>
+                    <span class="info-value">Fujairah Open 2026</span>
+                  </div>
                 </div>
                 
-                <p style="font-size: 16px; line-height: 1.8;">
-                  Congratulations! Your visa application for the <strong>13th Fujairah Open International Taekwondo Championships 2026</strong> has been <strong style="color: #10b981;">APPROVED</strong>!
-                </p>
-                
+                <!-- Important Instructions -->
                 <div class="glass-box">
-                  <h3 style="margin-top: 0; color: #1e3a8a;">📎 Visa Document Attached</h3>
-                  <p style="margin: 10px 0;">Your approved visa document is attached to this email as a PDF file.</p>
-                  <p style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; font-weight: 600; color: #059669;">
-                    📄 Filename: Visa_${applicantName || name}.pdf
-                  </p>
-                </div>
-                
-                <div class="glass-box">
-                  <h3 style="margin-top: 0; color: #1e3a8a;">📋 Important Instructions</h3>
-                  <ol style="color: #374151; line-height: 2; margin: 15px 0;">
-                    <li><strong>Download</strong> the attached PDF document</li>
-                    <li><strong>Print</strong> a copy to bring when traveling</li>
-                    <li><strong>Present</strong> it at UAE immigration</li>
-                    <li><strong>Verify</strong> all details are correct</li>
+                  <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: #fff;">📋 Important Instructions</h3>
+                  <ol style="line-height: 2; margin: 10px 0 10px 20px; opacity: 0.9;">
+                    <li><strong>Download</strong> the attached visa PDF document</li>
+                    <li><strong>Print</strong> a physical copy for travel</li>
+                    <li><strong>Present</strong> it at UAE immigration upon arrival</li>
+                    <li><strong>Verify</strong> all details match your passport</li>
                   </ol>
                 </div>
                 
-                <div style="text-align: center; margin: 30px 0;">
-                  <p style="font-size: 18px; color: #1e3a8a; font-weight: 600; margin-bottom: 15px;">Complete Your Championship Preparation</p>
-                  <a href="${APP_URL}/en/hotel" class="button" style="margin: 5px;">🏨 Book Hotel</a>
-                  <a href="${APP_URL}/en/transportation" class="button" style="margin: 5px;">🚗 Transportation</a>
+                <!-- Next Steps -->
+                <div class="grid-2">
+                  <div class="glass-box" style="text-align: center;">
+                    <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 15px;">🏨 Book Your Hotel</h4>
+                    <p style="font-size: 14px; opacity: 0.8; margin-bottom: 15px;">Reserve your accommodation</p>
+                    <a href="${APP_URL}/en/hotel" class="button">Book Now</a>
+                  </div>
+                  <div class="glass-box" style="text-align: center;">
+                    <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 15px;">🚗 Transportation</h4>
+                    <p style="font-size: 14px; opacity: 0.8; margin-bottom: 15px;">Arrange airport transfers</p>
+                    <a href="${APP_URL}/en/transportation" class="button">Request Now</a>
+                  </div>
                 </div>
               </div>
               
-              <div class="footer">
-                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 15px;" />
-                <p style="margin: 5px 0; font-size: 14px; font-weight: 600;">13th Fujairah Open 2026</p>
-                <p style="margin: 5px 0;">International Taekwondo Championships</p>
-                <p style="margin: 15px 0 5px; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+              <!-- Footer -->
+              <div class="footer" style="text-align: center;">
+                <img src="https://www.fujopen.com/images/fujairah-logo.png" alt="Logo" style="width: 40px; height: 40px; margin-bottom: 10px; opacity: 0.7;" />
+                <p style="margin: 5px 0; font-size: 13px; font-weight: 600;">13th Fujairah Open 2026 | International Taekwondo Championships</p>
+                <p style="margin: 10px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
               </div>
             </div>
           </div>
@@ -504,74 +594,102 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
         <body>
           <div class="email-wrapper">
             <div class="email-container">
+              <!-- Header -->
               <div class="header">
-                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Fujairah Open 2026" class="logo" />
-                <h1 style="margin: 10px 0; font-size: 32px; font-weight: 800;">FUJAIRAH OPEN 2026</h1>
-                <p style="margin: 5px 0; font-size: 14px; opacity: 0.9;">13th International Taekwondo Championships</p>
+                <div class="logo-section">
+                  <img src="https://www.fujopen.com/images/fujairah-logo.png" alt="Fujairah Open 2026" class="logo" />
+                  <div class="header-text">
+                    <h1>FUJAIRAH OPEN 2026</h1>
+                    <p>13th International Taekwondo Championships</p>
+                  </div>
+                </div>
+                <span class="status-badge ${currentStatus.color}">${currentStatus.title}</span>
               </div>
               
+              <!-- Content -->
               <div class="content">
-                <h2 style="color: #1e3a8a; font-size: 28px; margin-bottom: 10px;">Hello ${name}! 👋</h2>
+                <h2 style="font-size: 26px; margin-bottom: 20px; font-weight: 800;">Hello ${name}! 👋</h2>
                 
-                <div class="glass-box" style="text-align: center;">
-                  <div style="font-size: 48px; margin-bottom: 15px;">${currentStatus.icon}</div>
-                  <span class="status-badge ${currentStatus.color}">${currentStatus.title}</span>
-                  <p style="font-size: 16px; margin: 15px 0; line-height: 1.8;">${currentStatus.message}</p>
+                <!-- Status Card -->
+                <div class="status-card">
+                  <div style="text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 60px; margin-bottom: 10px;">${currentStatus.icon}</div>
+                    <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">${currentStatus.title}</h3>
+                    <p style="font-size: 16px; opacity: 0.9;">${currentStatus.message}</p>
+                  </div>
+                  
+                  <div class="info-row">
+                    <span class="info-label">Application Status:</span>
+                    <span class="info-value">${currentStatus.title}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Applicant:</span>
+                    <span class="info-value">${name}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Championship:</span>
+                    <span class="info-value">Fujairah Open 2026</span>
+                  </div>
                 </div>
                 
                 ${additionalNotes ? `
+                  <!-- Admin Notes -->
                   <div class="note-box">
-                    <h3 style="margin-top: 0; color: #dc2626; font-size: 18px;">📝 Admin Notes:</h3>
-                    <p style="margin: 10px 0; font-size: 15px; color: #991b1b; line-height: 1.8; white-space: pre-wrap;">${additionalNotes}</p>
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: #fca5a5;">📝 MESSAGE FROM ADMIN</h3>
+                    <p style="font-size: 15px; line-height: 1.8; color: #fecaca; white-space: pre-wrap; margin: 0;">${additionalNotes}</p>
                   </div>
                 ` : ''}
                 
                 ${status === 'additional' ? `
+                  <!-- Action Required -->
                   <div class="glass-box">
-                    <h3 style="margin-top: 0; color: #dc2626;">⚠️ Action Required</h3>
-                    <p style="margin: 10px 0; font-size: 15px; line-height: 1.8;">
-                      Please upload the requested additional documents through your dashboard to continue the visa application process.
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: #fff;">⚠️ Action Required</h3>
+                    <p style="font-size: 15px; opacity: 0.9; margin-bottom: 20px; line-height: 1.8;">
+                      Additional documents are required to process your visa application. Please upload them as soon as possible.
                     </p>
-                    <div style="text-align: center; margin: 20px 0;">
-                      <a href="${APP_URL}/en/visa" class="button">Upload Documents</a>
+                    <div style="text-align: center;">
+                      <a href="${APP_URL}/en/visa" class="button">Upload Documents Now</a>
                     </div>
                   </div>
                 ` : ''}
                 
                 ${status === 'rejected' ? `
+                  <!-- Next Steps for Rejection -->
                   <div class="glass-box">
-                    <h3 style="margin-top: 0; color: #1e3a8a;">💡 Next Steps</h3>
-                    <p style="margin: 10px 0; font-size: 15px; line-height: 1.8;">
-                      If you have questions about this decision, please contact our support team at 
-                      <a href="mailto:info@fujairahopen.com" style="color: #6366f1; font-weight: 600;">info@fujairahopen.com</a>
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: #fff;">💡 Need Assistance?</h3>
+                    <p style="font-size: 15px; opacity: 0.9; line-height: 1.8;">
+                      If you have questions about this decision or need clarification, our support team is here to help.
+                    </p>
+                    <p style="margin-top: 15px; font-size: 15px;">
+                      📧 Email: <a href="mailto:info@fujairahopen.com" style="color: #60a5fa; font-weight: 600; text-decoration: none;">info@fujairahopen.com</a>
                     </p>
                   </div>
                 ` : ''}
                 
-                ${status === 'reviewing' || status === 'submitted' || status === 'processing' ? `
+                ${status === 'reviewing' || status === 'submitted' || status === 'processing' || status === 'pending' ? `
+                  <!-- Progress Update -->
                   <div class="glass-box">
-                    <h3 style="margin-top: 0; color: #1e3a8a;">⏱️ What's Next?</h3>
-                    <p style="margin: 10px 0; font-size: 15px; line-height: 1.8;">
-                      Your application is progressing smoothly. You'll receive another email notification once the status changes.
-                      Please check your dashboard for real-time updates.
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: #fff;">⏱️ What's Next?</h3>
+                    <p style="font-size: 15px; opacity: 0.9; line-height: 1.8;">
+                      Your application is progressing smoothly. You'll receive email notifications as the status updates.
+                      Track your application status in real-time through your dashboard.
                     </p>
                   </div>
                 ` : ''}
                 
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${APP_URL}/en/visa" class="button">View Application Status</a>
+                <!-- CTA Button -->
+                <div style="text-align: center; margin: 35px 0;">
+                  <a href="${APP_URL}/en/visa" class="button" style="font-size: 16px; padding: 16px 48px;">
+                    View Application Dashboard
+                  </a>
                 </div>
-                
-                <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
-                  Questions? Contact us at <a href="mailto:info@fujairahopen.com" style="color: #6366f1; font-weight: 600;">info@fujairahopen.com</a>
-                </p>
               </div>
               
-              <div class="footer">
-                <img src="https://www.fujopen.com/images/13th%20Fuj.%20OITC.png" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 15px;" />
-                <p style="margin: 5px 0; font-size: 14px; font-weight: 600;">13th Fujairah Open 2026</p>
-                <p style="margin: 5px 0;">International Taekwondo Championships</p>
-                <p style="margin: 15px 0 5px; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+              <!-- Footer -->
+              <div class="footer" style="text-align: center;">
+                <img src="https://www.fujopen.com/images/fujairah-logo.png" alt="Logo" style="width: 40px; height: 40px; margin-bottom: 10px; opacity: 0.7;" />
+                <p style="margin: 5px 0; font-size: 13px; font-weight: 600;">13th Fujairah Open 2026 | International Taekwondo Championships</p>
+                <p style="margin: 10px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
               </div>
             </div>
           </div>
