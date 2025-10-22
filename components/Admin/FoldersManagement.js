@@ -277,26 +277,55 @@ function FoldersManagement() {
       return;
     }
 
-    const exportData = folderApps.map(app => ({
-      'Full Name (English)': app.fullNameEnglish,
-      'Full Name (Arabic)': app.fullNameArabic || '',
-      'Passport Number': app.passportNumber,
-      'Date of Birth': app.dateOfBirth || '',
-      'Nationality': app.nationality || '',
-      'Position': app.position || '',
-      'Team/Club': app.teamName || '',
-      'Status': app.status,
-      'Submitted Date': new Date(app.submittedDate).toLocaleString(),
+    // Arabic RTL columns with exact order specified
+    const exportData = folderApps.map((app, index) => ({
+      'م': index + 1, // Serial number
+      'الاسم (عربي)': app.fullNameArabic || '',
+      'الاسم (انجليزي)': app.fullNameEnglish || '',
+      'الجنسية': app.nationality || '',
+      'الصفه (POSITION)': app.position || '',
+      'الجنس': app.gender || '',
+      'تاريخ الميلاد': app.dateOfBirth || '',
+      'مكان الميلاد': app.placeOfBirth || '',
+      'رقم الجواز': app.passportNumber || '',
+      'تاريخ الانتهاء': app.expiryDate || '',
+      'نوعه': 'عادي', // Fixed value: Regular
+      'نوع اذن الدخول': 'خاصه', // Fixed value: Special
     }));
 
+    // Create worksheet with RTL support
     const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const cols = Object.keys(exportData[0] || {}).map(() => ({ wch: 50 }));
-    worksheet['!cols'] = cols;
+    
+    // Set column widths for better Arabic text display
+    worksheet['!cols'] = [
+      { wch: 8 },   // م
+      { wch: 30 },  // الاسم (عربي)
+      { wch: 30 },  // الاسم (انجليزي)
+      { wch: 15 },  // الجنسية
+      { wch: 18 },  // الصفه
+      { wch: 10 },  // الجنس
+      { wch: 15 },  // تاريخ الميلاد
+      { wch: 22 },  // مكان الميلاد
+      { wch: 15 },  // رقم الجواز
+      { wch: 15 },  // تاريخ الانتهاء
+      { wch: 12 },  // نوعه
+      { wch: 18 },  // نوع اذن الدخول
+    ];
+
+    // Set RTL direction for the worksheet
+    if (!worksheet['!views']) worksheet['!views'] = [];
+    worksheet['!views'][0] = { rightToLeft: true };
     
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, folder.name);
+    XLSX.utils.book_append_sheet(workbook, worksheet, folder.name.substring(0, 31)); // Excel sheet name limit
     
-    XLSX.writeFile(workbook, `${folder.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    // Add RTL workbook properties
+    if (!workbook.Workbook) workbook.Workbook = {};
+    if (!workbook.Workbook.Views) workbook.Workbook.Views = [];
+    workbook.Workbook.Views[0] = { RTL: true };
+    
+    const fileName = `${folder.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
     setSnackbar({ open: true, message: 'Folder exported to Excel!', severity: 'success' });
   };
 
