@@ -498,10 +498,8 @@ function VisaManagement() {
 
       {viewMode === 'applicants' && (
         <>
-          {/* Filters */}
-          <Box className={classes.filterSection}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+          {/* Search Bar with Actions */}
+          <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
               fullWidth
               placeholder="Search by name, passport, or team..."
@@ -510,9 +508,30 @@ function VisaManagement() {
               InputProps={{
                 startAdornment: <SearchIcon sx={{ mr: 1, opacity: 0.6 }} />,
               }}
+              sx={{ flex: 1, minWidth: 300 }}
             />
-          </Grid>
-          <Grid item xs={12} sm={8}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Chip label={`Total: ${filteredApplications.length}`} color="primary" sx={{ fontWeight: 700, fontSize: '0.9rem' }} />
+              <Button 
+                variant="outlined" 
+                startIcon={<RefreshIcon />}
+                onClick={fetchApplications}
+                disabled={loading}
+              >
+                {loading ? 'Refreshing...' : 'Refresh'}
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<DownloadIcon />}
+                onClick={handleExportApplicants}
+              >
+                Export Excel
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Status Filter Tabs */}
+          <Box sx={{ mb: 3 }}>
             <Tabs
               value={filterStatus}
               onChange={(e, val) => setFilterStatus(val)}
@@ -538,29 +557,7 @@ function VisaManagement() {
               <Tab label="APPROVED" value="approved" />
               <Tab label="REJECTED" value="rejected" />
             </Tabs>
-          </Grid>
-          <Grid item xs={12} sm={5}>
-            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-              <Chip label={`Total: ${filteredApplications.length}`} color="primary" />
-              <Button 
-                variant="outlined" 
-                startIcon={<RefreshIcon />}
-                onClick={fetchApplications}
-                disabled={loading}
-              >
-                {loading ? 'Refreshing...' : 'Refresh'}
-              </Button>
-              <Button 
-                variant="outlined" 
-                startIcon={<DownloadIcon />}
-                onClick={handleExportApplicants}
-              >
-                Export Excel
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
-      </Box>
+          </Box>
 
       {/* Applications Table */}
       {loading ? (
