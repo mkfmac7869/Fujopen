@@ -6,8 +6,8 @@ const resend = new Resend('re_Fkx6FBkJ_ENMg8QQpgD8jgTDtHnodZu1S');
 
 // Configuration
 const FROM_EMAIL = 'Fujairah Open 2026 <noreply@fujopen.com>';
-const APP_URL = 'https://www.fujopen.com';
-const LOGO_URL = 'https://raw.githubusercontent.com/mkfmac7869/Fujopen/main/awrora-react/public/images/fujairah-logo.png';
+const APP_URL = 'https://fujopen.com'; // Changed from www.fujopen.com to fujopen.com
+const LOGO_URL = 'https://fujopen.com/images/fujairah-logo.png'; // Use domain URL for logo
 
 // CORS configuration
 const corsOptions = {
