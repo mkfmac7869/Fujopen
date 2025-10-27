@@ -51,8 +51,8 @@ const appTheme = (color, mode, locale = 'en') => {
       hoverOpacity: 0.05
     },
     background: {
-      paper: mode === 'dark' ? '#0a0a0a' : '#FFFFFF',
-      default: mode === 'dark' ? '#303030' : '#fafafa',
+      paper: mode === 'dark' ? '#155289' : '#FFFFFF',
+      default: mode === 'dark' ? '#155289' : '#fafafa',
     },
     common: {
       black: '#000',
