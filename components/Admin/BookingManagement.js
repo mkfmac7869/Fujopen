@@ -98,12 +98,14 @@ function BookingManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [detailsDialog, setDetailsDialog] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [hotelDialog, setHotelDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
   const [invoiceDialog, setInvoiceDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState('');
   const [confirmationNumbers, setConfirmationNumbers] = useState({}); // For grouped bookings
-  const [viewMode, setViewMode] = useState('all'); // 'all' or 'teams'
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'teams', or 'hotels'
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamDialog, setTeamDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -398,6 +400,45 @@ function BookingManagement() {
   };
 
   const teamData = groupByTeam();
+
+  // Group bookings by hotel
+  const groupByHotel = () => {
+    const hotels = {};
+    filteredBookings.forEach(booking => {
+      const bookings = booking.individualBookings || [booking];
+      
+      bookings.forEach(individualBooking => {
+        const hotelName = individualBooking.hotelName || 'Unknown Hotel';
+        
+        if (!hotels[hotelName]) {
+          hotels[hotelName] = {
+            name: hotelName,
+            location: individualBooking.hotelLocation || 'N/A',
+            bookings: [],
+            total: 0,
+            pending: 0,
+            confirmed: 0,
+            cancelled: 0,
+            totalRooms: 0,
+            totalRevenue: 0,
+          };
+        }
+        hotels[hotelName].bookings.push({
+          ...booking,
+          currentHotelBooking: individualBooking
+        });
+        hotels[hotelName].total++;
+        if (booking.status === 'confirmed') hotels[hotelName].confirmed++;
+        else if (booking.status === 'cancelled') hotels[hotelName].cancelled++;
+        else hotels[hotelName].pending++;
+        hotels[hotelName].totalRooms += parseInt(individualBooking.numberOfRooms) || 0;
+        hotels[hotelName].totalRevenue += individualBooking.totalPrice || 0;
+      });
+    });
+    return Object.values(hotels);
+  };
+
+  const hotelData = groupByHotel();
 
   // Export to Excel
   const handleExportExcel = () => {
@@ -780,6 +821,7 @@ function BookingManagement() {
         <Tabs value={viewMode} onChange={(e, val) => setViewMode(val)}>
           <Tab label="All Bookings" value="all" />
           <Tab label="By Teams" value="teams" />
+          <Tab label="By Hotel" value="hotels" />
         </Tabs>
       </Box>
 
@@ -1134,7 +1176,145 @@ function BookingManagement() {
             </Grid>
           )}
         </Box>
-      )}
+      ) : viewMode === 'hotels' ? (
+        /* Hotels View */
+        <Box>
+          {/* Export Buttons for Hotels */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Chip label={`Total Hotels: ${hotelData.length}`} color="primary" />
+            <Button 
+              variant="contained" 
+              startIcon={<DownloadIcon />}
+              onClick={handleExportExcel}
+              disabled={bookings.length === 0}
+              size="small"
+              sx={{ background: '#10b981', '&:hover': { background: '#059669' } }}
+            >
+              Export Bookings
+            </Button>
+            <Button 
+              variant="contained" 
+              startIcon={<DownloadIcon />}
+              onClick={handleExportGuestList}
+              disabled={bookings.length === 0}
+              size="small"
+              sx={{ background: '#6366f1', '&:hover': { background: '#4f46e5' } }}
+            >
+              Export Guest List
+            </Button>
+          </Box>
+          
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+              <CircularProgress size={60} />
+            </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {hotelData.map((hotel, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Card 
+                    className={classes.tableCard}
+                    sx={{ 
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 12px 40px rgba(99, 102, 241, 0.2)',
+                      }
+                    }}
+                    onClick={() => {
+                      setSelectedHotel(hotel);
+                      setHotelDialog(true);
+                    }}
+                  >
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Box
+                          sx={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 2,
+                            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '2rem',
+                          }}
+                        >
+                          🏨
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                            {hotel.name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ opacity: 0.7, fontSize: '0.85rem' }}>
+                            {hotel.location}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                        <Chip 
+                          label={`${hotel.total} Bookings`} 
+                          size="small"
+                          sx={{ background: 'rgba(99, 102, 241, 0.15)', color: theme.palette.primary.main, fontWeight: 700 }}
+                        />
+                        <Chip 
+                          label={`${hotel.totalRooms} Rooms`} 
+                          size="small"
+                          color="info"
+                          sx={{ fontWeight: 700 }}
+                        />
+                        <Chip 
+                          label={`${hotel.confirmed} Confirmed`} 
+                          size="small"
+                          color="success"
+                          sx={{ fontWeight: 700 }}
+                        />
+                        <Chip 
+                          label={`${hotel.pending} Pending`} 
+                          size="small"
+                          color="warning"
+                          sx={{ fontWeight: 700 }}
+                        />
+                        {hotel.cancelled > 0 && (
+                          <Chip 
+                            label={`${hotel.cancelled} Cancelled`} 
+                            size="small"
+                            color="error"
+                            sx={{ fontWeight: 700 }}
+                          />
+                        )}
+                      </Box>
+
+                      <Box sx={{ mb: 2, p: 1.5, background: 'rgba(76, 175, 80, 0.1)', borderRadius: 1 }}>
+                        <Typography variant="caption" display="block" sx={{ opacity: 0.8 }}>
+                          Total Revenue
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#4caf50' }}>
+                          ${hotel.totalRevenue?.toFixed(2) || '0.00'}
+                        </Typography>
+                      </Box>
+
+                      <Button 
+                        variant="outlined" 
+                        fullWidth
+                        sx={{ 
+                          fontWeight: 700,
+                          borderColor: theme.palette.primary.main,
+                          color: theme.palette.primary.main,
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
+      ) : null}
 
       {/* Team Bookings Dialog */}
       <Dialog
@@ -1324,6 +1504,180 @@ function BookingManagement() {
                 Generate Team Invoice
               </Button>
             </Box>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      {/* Hotel Bookings Dialog */}
+      <Dialog
+        open={hotelDialog}
+        onClose={() => setHotelDialog(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)'
+              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+            backdropFilter: 'blur(40px)',
+            borderRadius: 4,
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                width: 50,
+                height: 50,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+              }}
+            >
+              🏨
+            </Box>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                {selectedHotel?.name}
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                {selectedHotel?.location}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedHotel && (
+            <TableContainer component={Paper} className={classes.tableCard} sx={{ mt: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ background: theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)' }}>
+                    <TableCell sx={{ fontWeight: 700 }}>Team/Club</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Room Type</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Dates</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Guests</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Total</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {selectedHotel.bookings.map((booking, idx) => {
+                    const individualBooking = booking.currentHotelBooking;
+                    return (
+                      <TableRow key={idx} hover>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {booking.userName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                            {booking.userEmail}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {individualBooking.roomType}
+                          </Typography>
+                          <Chip 
+                            label={`${individualBooking.numberOfRooms} Rooms`} 
+                            size="small" 
+                            sx={{ mt: 0.5 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" display="block">
+                            In: {new Date(individualBooking.checkInDate).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="caption" display="block">
+                            Out: {new Date(individualBooking.checkOutDate).toLocaleDateString()}
+                          </Typography>
+                          <Chip 
+                            label={`${individualBooking.numberOfNights} nights`} 
+                            size="small" 
+                            sx={{ mt: 0.5 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {individualBooking.guests?.length || 0} guest(s)
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                            ${individualBooking.totalPrice || booking.totalPrice}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={statusConfig[booking.status]?.label || booking.status}
+                            color={statusConfig[booking.status]?.color || 'default'}
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <IconButton 
+                              size="small"
+                              color="primary"
+                              onClick={() => {
+                                setSelectedBooking(booking);
+                                setDetailsDialog(true);
+                              }}
+                              title="View Details"
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                            <IconButton 
+                              size="small"
+                              color="secondary"
+                              onClick={() => {
+                                setSelectedBooking(booking);
+                                setNewStatus(booking.status);
+                                setEditDialog(true);
+                              }}
+                              title="Edit Status"
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton 
+                              size="small"
+                              color="error"
+                              onClick={() => handleExportPDF(booking)}
+                              title="Export PDF Report"
+                            >
+                              <PictureAsPdfIcon />
+                            </IconButton>
+                            {booking.status === 'confirmed' && (
+                              <IconButton 
+                                size="small"
+                                color="success"
+                                onClick={() => handleGenerateInvoice(booking)}
+                                title="Generate Invoice"
+                              >
+                                <ReceiptIcon />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Box sx={{ display: 'flex', gap: 1, width: '100%', justifyContent: 'space-between' }}>
+            <Button 
+              variant="outlined"
+              onClick={() => setHotelDialog(false)}
+            >
+              Close
+            </Button>
           </Box>
         </DialogActions>
       </Dialog>
