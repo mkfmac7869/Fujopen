@@ -69,11 +69,23 @@ function ChampionshipOutline() {
   };
 
   useEffect(() => {
-    fetch('/details.json')
+    const locale = router.locale || 'en';
+    const jsonFile = locale === 'en' ? '/details.json' : `/details-${locale}.json`;
+    
+    fetch(jsonFile)
       .then(res => res.json())
       .then(data => setEventData(data))
-      .catch(err => console.error('Error loading event data:', err));
-  }, []);
+      .catch(err => {
+        console.error(`Error loading event data for ${locale}:`, err);
+        // Fallback to English if locale file not found
+        if (locale !== 'en') {
+          fetch('/details.json')
+            .then(res => res.json())
+            .then(data => setEventData(data))
+            .catch(err => console.error('Error loading fallback event data:', err));
+        }
+      });
+  }, [router.locale]);
 
   if (!eventData) {
     return <Container sx={{ py: 10, textAlign: 'center' }}><Typography>{t('ai-landing.outline_loading')}</Typography></Container>;
