@@ -1106,7 +1106,7 @@ function BookingManagement() {
         </TableContainer>
       )}
         </>
-      ) : (
+      ) : viewMode === 'teams' ? (
         /* Teams View */
         <Box>
           {/* Export Button for Teams */}
