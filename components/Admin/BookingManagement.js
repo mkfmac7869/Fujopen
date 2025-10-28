@@ -886,8 +886,26 @@ function BookingManagement() {
       </Typography>
 
       {/* View Mode Tabs */}
-      <Box sx={{ mb: 3 }}>
-        <Tabs value={viewMode} onChange={(e, val) => setViewMode(val)}>
+      <Box className={classes.filterSection} sx={{ mb: 3 }}>
+        <Tabs 
+          value={viewMode} 
+          onChange={(e, val) => setViewMode(val)}
+          sx={{
+            minHeight: 56,
+            '& .MuiTab-root': {
+              minHeight: 56,
+              fontWeight: 700,
+              fontSize: '1rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              px: 4,
+              py: 2,
+            },
+            '& .Mui-selected': {
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))',
+            }
+          }}
+        >
           <Tab label="All Bookings" value="all" />
           <Tab label="By Teams" value="teams" />
           <Tab label="By Hotel" value="hotels" />
@@ -1248,8 +1266,8 @@ function BookingManagement() {
       ) : viewMode === 'hotels' ? (
         /* Hotels View */
         <Box>
-          {/* Hotel Filter Tabs */}
-          <Box sx={{ mb: 3 }}>
+          {/* Hotel Filter Tabs - Matching Main Tabs Design */}
+          <Box className={classes.filterSection} sx={{ mb: 3 }}>
             <Tabs
               value={selectedHotel?.name || (hotelData.length > 0 ? hotelData[0].name : 'all')}
               onChange={(e, val) => {
@@ -1259,17 +1277,23 @@ function BookingManagement() {
               variant="scrollable"
               scrollButtons="auto"
               sx={{
-                background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: 2,
-                p: 1,
+                minHeight: 56,
                 '& .MuiTab-root': {
+                  minHeight: 56,
                   fontWeight: 700,
-                  fontSize: '0.95rem',
-                  textTransform: 'none',
+                  fontSize: '1rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  px: 4,
+                  py: 2,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: 'rgba(245, 158, 11, 0.1)',
+                  }
                 },
                 '& .Mui-selected': {
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2))',
+                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25))',
+                  color: theme.palette.mode === 'dark' ? '#fbbf24' : '#d97706',
                 }
               }}
             >
@@ -1284,16 +1308,40 @@ function BookingManagement() {
           </Box>
 
           {/* Export Buttons */}
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {selectedHotel ? selectedHotel.name : hotelData[0]?.name} Bookings
-            </Typography>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                {selectedHotel ? selectedHotel.name : hotelData[0]?.name}
+              </Typography>
+              <Chip 
+                label={`${(selectedHotel || hotelData[0])?.total || 0} Bookings`} 
+                color="primary" 
+                sx={{ fontWeight: 700, fontSize: '0.9rem' }} 
+              />
+              <Chip 
+                label={`${(selectedHotel || hotelData[0])?.totalRooms || 0} Rooms`} 
+                color="info" 
+                sx={{ fontWeight: 700, fontSize: '0.9rem' }} 
+              />
+            </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button 
                 variant="contained" 
                 startIcon={<DownloadIcon />}
-                onClick={handleExportExcel}
-                disabled={bookings.length === 0}
+                onClick={() => {
+                  const currentHotel = selectedHotel || hotelData[0];
+                  if (currentHotel) {
+                    // Filter bookings for this hotel only
+                    const hotelBookingsOnly = currentHotel.bookings;
+                    const tempFilteredBookings = filteredBookings;
+                    setFilteredBookings(hotelBookingsOnly);
+                    setTimeout(() => {
+                      handleExportExcel();
+                      setFilteredBookings(tempFilteredBookings);
+                    }, 0);
+                  }
+                }}
+                disabled={!selectedHotel && !hotelData[0]}
                 size="small"
                 sx={{ background: '#10b981', '&:hover': { background: '#059669' } }}
               >
@@ -1302,8 +1350,20 @@ function BookingManagement() {
               <Button 
                 variant="contained" 
                 startIcon={<DownloadIcon />}
-                onClick={handleExportGuestList}
-                disabled={bookings.length === 0}
+                onClick={() => {
+                  const currentHotel = selectedHotel || hotelData[0];
+                  if (currentHotel) {
+                    // Filter bookings for this hotel only
+                    const hotelBookingsOnly = currentHotel.bookings;
+                    const tempFilteredBookings = filteredBookings;
+                    setFilteredBookings(hotelBookingsOnly);
+                    setTimeout(() => {
+                      handleExportGuestList();
+                      setFilteredBookings(tempFilteredBookings);
+                    }, 0);
+                  }
+                }}
+                disabled={!selectedHotel && !hotelData[0]}
                 size="small"
                 sx={{ background: '#6366f1', '&:hover': { background: '#4f46e5' } }}
               >
