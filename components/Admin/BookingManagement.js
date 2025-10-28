@@ -1287,13 +1287,9 @@ function BookingManagement() {
                   px: 4,
                   py: 2,
                   transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: 'rgba(245, 158, 11, 0.1)',
-                  }
                 },
                 '& .Mui-selected': {
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25))',
-                  color: theme.palette.mode === 'dark' ? '#fbbf24' : '#d97706',
+                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))',
                 }
               }}
             >
@@ -1330,16 +1326,43 @@ function BookingManagement() {
                 startIcon={<DownloadIcon />}
                 onClick={() => {
                   const currentHotel = selectedHotel || hotelData[0];
-                  if (currentHotel) {
-                    // Filter bookings for this hotel only
-                    const hotelBookingsOnly = currentHotel.bookings;
-                    const tempFilteredBookings = filteredBookings;
-                    setFilteredBookings(hotelBookingsOnly);
-                    setTimeout(() => {
-                      handleExportExcel();
-                      setFilteredBookings(tempFilteredBookings);
-                    }, 0);
-                  }
+                  if (!currentHotel) return;
+                  
+                  // Export bookings for this hotel only
+                  const exportData = [];
+                  currentHotel.bookings.forEach((booking) => {
+                    const individualBooking = booking.currentHotelBooking;
+                    const bookings = booking.individualBookings || [booking];
+                    const bookingIdx = bookings.findIndex(b => b.hotelName === individualBooking.hotelName);
+                    const bookingNumber = bookings.length > 1 ? `Booking ${bookingIdx + 1}` : '';
+                    
+                    exportData.push({
+                      'Team/Club': booking.userName,
+                      'Email': booking.userEmail,
+                      'Booking #': bookingNumber,
+                      'Hotel': individualBooking.hotelName,
+                      'Room Type': individualBooking.roomType,
+                      'Number of Rooms': individualBooking.numberOfRooms,
+                      'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
+                      'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
+                      'Nights': individualBooking.numberOfNights,
+                      'Status': statusConfig[booking.status]?.label || booking.status,
+                      'Payment Status': booking.paymentStatus || 'pending',
+                      'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
+                      'Created Date': new Date(booking.createdAt).toLocaleString(),
+                      'Last Updated': new Date(booking.lastUpdated).toLocaleString(),
+                    });
+                  });
+
+                  const ws = XLSX.utils.json_to_sheet(exportData);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, currentHotel.name.substring(0, 31));
+                  
+                  const maxWidth = 20;
+                  const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
+                  ws['!cols'] = wscols;
+                  
+                  XLSX.writeFile(wb, `${currentHotel.name}_Bookings_${new Date().toLocaleDateString()}.xlsx`);
                 }}
                 disabled={!selectedHotel && !hotelData[0]}
                 size="small"
@@ -1352,16 +1375,92 @@ function BookingManagement() {
                 startIcon={<DownloadIcon />}
                 onClick={() => {
                   const currentHotel = selectedHotel || hotelData[0];
-                  if (currentHotel) {
-                    // Filter bookings for this hotel only
-                    const hotelBookingsOnly = currentHotel.bookings;
-                    const tempFilteredBookings = filteredBookings;
-                    setFilteredBookings(hotelBookingsOnly);
-                    setTimeout(() => {
-                      handleExportGuestList();
-                      setFilteredBookings(tempFilteredBookings);
-                    }, 0);
-                  }
+                  if (!currentHotel) return;
+                  
+                  // Export guest list for this hotel only
+                  const exportData = [];
+                  const merges = [];
+                  let rowIndex = 0;
+                  let reservationCounter = 0;
+                  
+                  currentHotel.bookings.forEach((booking) => {
+                    const individualBooking = booking.currentHotelBooking;
+                    const guests = individualBooking.guests || [];
+                    const totalGuests = guests.length;
+                    
+                    if (totalGuests === 0) return;
+                    
+                    reservationCounter++;
+                    const startRow = rowIndex + 1;
+                    
+                    // Group guests by room
+                    const guestsByRoom = {};
+                    guests.forEach((guest) => {
+                      const roomNum = guest.roomNumber || 'TBA';
+                      if (!guestsByRoom[roomNum]) {
+                        guestsByRoom[roomNum] = [];
+                      }
+                      guestsByRoom[roomNum].push(guest);
+                    });
+                    
+                    const roomNumbers = Object.keys(guestsByRoom);
+                    roomNumbers.forEach((roomNum) => {
+                      const roomGuests = guestsByRoom[roomNum];
+                      const roomStartRow = rowIndex + 1;
+                      
+                      roomGuests.forEach((guest, guestInRoomIdx) => {
+                        exportData.push({
+                          '#': reservationCounter,
+                          'Team/Club': booking.userName,
+                          'Email': booking.userEmail,
+                          'Hotel': individualBooking.hotelName,
+                          'Room Type': individualBooking.roomType,
+                          'Number of Rooms': individualBooking.numberOfRooms,
+                          'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
+                          'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
+                          'Nights': individualBooking.numberOfNights,
+                          'Room #': roomNum,
+                          'Guest #': guestInRoomIdx + 1,
+                          'Guest Full Name': guest.fullName,
+                          'Passport Number': guest.passportNumber,
+                        });
+                        rowIndex++;
+                      });
+                      
+                      // Merge Room # for this room's guests
+                      if (roomGuests.length > 1) {
+                        merges.push({
+                          s: { r: roomStartRow, c: 9 },
+                          e: { r: roomStartRow + roomGuests.length - 1, c: 9 }
+                        });
+                      }
+                    });
+                    
+                    // Merge cells for reservation-level data
+                    if (totalGuests > 1) {
+                      const endRow = startRow + totalGuests - 1;
+                      for (let col = 0; col <= 8; col++) {
+                        merges.push({
+                          s: { r: startRow, c: col },
+                          e: { r: endRow, c: col }
+                        });
+                      }
+                    }
+                  });
+
+                  const ws = XLSX.utils.json_to_sheet(exportData);
+                  ws['!merges'] = merges;
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, currentHotel.name.substring(0, 31));
+                  
+                  const columnWidths = [
+                    { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 15 },
+                    { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 8 },
+                    { wch: 8 }, { wch: 25 }, { wch: 18 },
+                  ];
+                  ws['!cols'] = columnWidths;
+                  
+                  XLSX.writeFile(wb, `${currentHotel.name}_Guest_List_${new Date().toLocaleDateString()}.xlsx`);
                 }}
                 disabled={!selectedHotel && !hotelData[0]}
                 size="small"
