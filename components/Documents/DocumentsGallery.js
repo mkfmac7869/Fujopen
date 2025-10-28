@@ -134,9 +134,12 @@ function DocumentsGallery() {
     <Box className={classes.root}>
       {/* Header */}
       <Box className={classes.header}>
-        <Typography variant="h4" sx={{ fontWeight: 800 }}>
-          📄 Championship Documents
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <DescriptionIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>
+            Championship Documents
+          </Typography>
+        </Box>
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}

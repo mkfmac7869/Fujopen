@@ -27,6 +27,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -224,6 +225,14 @@ function AdminDashboard() {
       path: '/admin/booking-management',
       color: theme.palette.success.main,
       stats: `${stats.pendingBookings} Pending`,
+    },
+    {
+      title: 'Documents Management',
+      description: 'Upload and manage championship documents, organize by categories',
+      icon: <DescriptionIcon sx={{ fontSize: 64 }} />,
+      path: '/admin/documents-management',
+      color: theme.palette.info.main,
+      stats: '0 Documents',
     },
     {
       title: 'Transportation Management',

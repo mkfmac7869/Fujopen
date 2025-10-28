@@ -225,9 +225,12 @@ function DocumentsManagement() {
 
   return (
     <Container className={classes.root} maxWidth="xl">
-      <Typography variant="h3" sx={{ fontWeight: 800, mb: 4 }}>
-        📁 Documents Management
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+        <FolderIcon sx={{ fontSize: 48, color: 'primary.main' }} />
+        <Typography variant="h3" sx={{ fontWeight: 800 }}>
+          Documents Management
+        </Typography>
+      </Box>
 
       {/* Main Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
