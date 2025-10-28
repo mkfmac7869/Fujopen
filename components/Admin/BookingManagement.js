@@ -478,46 +478,113 @@ function BookingManagement() {
     XLSX.writeFile(wb, `Hotel_Bookings_${new Date().toLocaleDateString()}.xlsx`);
   };
 
-  // Export Guest List - All guests per team and hotel and room type
+  // Export Guest List - All guests per team and hotel and room type with merged cells
   const handleExportGuestList = () => {
     const exportData = [];
+    const merges = [];
+    let rowIndex = 0; // Track current row (0-based, but header is row 0)
+    let reservationCounter = 0;
     
     filteredBookings.forEach((booking) => {
       const bookings = booking.individualBookings || [booking];
       
       bookings.forEach((individualBooking) => {
-        individualBooking.guests?.forEach((guest, guestIdx) => {
-          exportData.push({
-            'Team/Club': booking.userName,
-            'Email': booking.userEmail,
-            'Hotel': individualBooking.hotelName,
-            'Room Type': individualBooking.roomType,
-            'Number of Rooms': individualBooking.numberOfRooms,
-            'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
-            'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
-            'Nights': individualBooking.numberOfNights,
-            'Guest #': guestIdx + 1,
-            'Guest Full Name': guest.fullName,
-            'Passport Number': guest.passportNumber,
-            'Nationality': guest.nationality || 'N/A',
-            'Date of Birth': guest.dateOfBirth || 'N/A',
-            'Room Number': guest.roomNumber || 'TBA',
-            'Special Requests': guest.specialRequests || 'None',
-            'Status': statusConfig[booking.status]?.label || booking.status,
-            'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
-          });
+        const guests = individualBooking.guests || [];
+        const totalGuests = guests.length;
+        
+        if (totalGuests === 0) return;
+        
+        reservationCounter++;
+        const startRow = rowIndex + 1; // +1 because header is row 0
+        
+        // Group guests by room
+        const guestsByRoom = {};
+        guests.forEach((guest, guestIdx) => {
+          const roomNum = guest.roomNumber || 'TBA';
+          if (!guestsByRoom[roomNum]) {
+            guestsByRoom[roomNum] = [];
+          }
+          guestsByRoom[roomNum].push({ ...guest, guestIdx: guestIdx + 1 });
         });
+        
+        // Add rows for each guest
+        const roomNumbers = Object.keys(guestsByRoom);
+        let roomCounter = 0;
+        
+        roomNumbers.forEach((roomNum) => {
+          const roomGuests = guestsByRoom[roomNum];
+          const roomStartRow = rowIndex + 1;
+          
+          roomGuests.forEach((guest) => {
+            exportData.push({
+              '#': reservationCounter,
+              'Team/Club': booking.userName,
+              'Email': booking.userEmail,
+              'Hotel': individualBooking.hotelName,
+              'Room Type': individualBooking.roomType,
+              'Number of Rooms': individualBooking.numberOfRooms,
+              'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
+              'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
+              'Nights': individualBooking.numberOfNights,
+              'Room #': roomNum,
+              'Guest #': guest.guestIdx,
+              'Guest Full Name': guest.fullName,
+              'Passport Number': guest.passportNumber,
+            });
+            rowIndex++;
+          });
+          
+          // Merge Room # for this room's guests (if more than 1 guest per room)
+          if (roomGuests.length > 1) {
+            merges.push({
+              s: { r: roomStartRow, c: 9 }, // Room # column (index 9)
+              e: { r: roomStartRow + roomGuests.length - 1, c: 9 }
+            });
+          }
+          
+          roomCounter++;
+        });
+        
+        // Merge cells for reservation-level data (columns 0-8) across all guests
+        if (totalGuests > 1) {
+          const endRow = startRow + totalGuests - 1;
+          
+          // Merge columns: #, Team/Club, Email, Hotel, Room Type, Number of Rooms, Check-in, Check-out, Nights
+          for (let col = 0; col <= 8; col++) {
+            merges.push({
+              s: { r: startRow, c: col },
+              e: { r: endRow, c: col }
+            });
+          }
+        }
       });
     });
 
     const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    // Apply merges
+    ws['!merges'] = merges;
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Guest List');
     
     // Auto-size columns
-    const maxWidth = 20;
-    const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
-    ws['!cols'] = wscols;
+    const columnWidths = [
+      { wch: 5 },  // #
+      { wch: 20 }, // Team/Club
+      { wch: 25 }, // Email
+      { wch: 30 }, // Hotel
+      { wch: 15 }, // Room Type
+      { wch: 15 }, // Number of Rooms
+      { wch: 12 }, // Check-in
+      { wch: 12 }, // Check-out
+      { wch: 8 },  // Nights
+      { wch: 8 },  // Room #
+      { wch: 8 },  // Guest #
+      { wch: 25 }, // Guest Full Name
+      { wch: 18 }, // Passport Number
+    ];
+    ws['!cols'] = columnWidths;
     
     XLSX.writeFile(wb, `Hotel_Guest_List_${new Date().toLocaleDateString()}.xlsx`);
   };
