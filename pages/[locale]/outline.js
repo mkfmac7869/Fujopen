@@ -44,12 +44,12 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
 
-function ChampionshipOutline() {
+function ChampionshipOutline({ eventData: initialEventData }) {
   const theme = useTheme();
   const { t } = useTranslation('common');
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [eventData, setEventData] = useState(null);
+  const [eventData, setEventData] = useState(initialEventData);
   
   // Wait for router to be ready
   if (!router.isReady) {
@@ -68,34 +68,8 @@ function ChampionshipOutline() {
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
   };
 
-  useEffect(() => {
-    const locale = router.locale || 'en';
-    const jsonFile = locale === 'en' ? '/details.json' : `/details-${locale}.json`;
-    
-    console.log('🌍 Loading outline data for locale:', locale);
-    console.log('📄 JSON file:', jsonFile);
-    
-    fetch(jsonFile)
-      .then(res => {
-        console.log('✅ Fetch successful for:', jsonFile);
-        return res.json();
-      })
-      .then(data => {
-        console.log('📊 Data loaded:', data.event_name);
-        setEventData(data);
-      })
-      .catch(err => {
-        console.error(`❌ Error loading event data for ${locale}:`, err);
-        // Fallback to English if locale file not found
-        if (locale !== 'en') {
-          console.log('🔄 Falling back to English...');
-          fetch('/details.json')
-            .then(res => res.json())
-            .then(data => setEventData(data))
-            .catch(err => console.error('Error loading fallback event data:', err));
-        }
-      });
-  }, [router.locale]);
+  // Data is now loaded at build time via getStaticProps
+  // No need for client-side fetching
 
   if (!eventData) {
     return <Container sx={{ py: 10, textAlign: 'center' }}><Typography>{t('ai-landing.outline_loading')}</Typography></Container>;
@@ -538,7 +512,35 @@ function ChampionshipOutline() {
   );
 }
 
-const getStaticProps = makeStaticProps(['common']);
+const getStaticProps = async (ctx) => {
+  const { locale } = ctx.params;
+  const fs = require('fs');
+  const path = require('path');
+  
+  // Load the appropriate JSON file based on locale
+  let eventData;
+  try {
+    const jsonPath = locale === 'en' 
+      ? path.join(process.cwd(), 'public', 'details.json')
+      : path.join(process.cwd(), 'public', `details-${locale}.json`);
+    
+    const fileContents = fs.readFileSync(jsonPath, 'utf8');
+    eventData = JSON.parse(fileContents);
+  } catch (error) {
+    // Fallback to English if locale file doesn't exist
+    const jsonPath = path.join(process.cwd(), 'public', 'details.json');
+    const fileContents = fs.readFileSync(jsonPath, 'utf8');
+    eventData = JSON.parse(fileContents);
+  }
+  
+  return {
+    props: {
+      ...(await makeStaticProps(['common'])(ctx)).props,
+      eventData,
+    },
+  };
+};
+
 export { getStaticPaths, getStaticProps };
 
 ChampionshipOutline.getLayout = (page, pageProps) => (
