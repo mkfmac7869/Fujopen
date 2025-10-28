@@ -140,11 +140,11 @@ function CertificateGenerator() {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Position: Center horizontally, adjust Y position based on image
-      const centerX = canvas.width / 2;
-      const nameY = canvas.height * 0.45; // Adjust this value based on where name should appear
+      // Position: X=35.59%, Y=49.12% (exact positioning)
+      const nameX = canvas.width * 0.3559;
+      const nameY = canvas.height * 0.4912;
       
-      ctx.fillText(certificateData.fullName.toUpperCase(), centerX, nameY);
+      ctx.fillText(certificateData.fullName.toUpperCase(), nameX, nameY);
 
       console.log('✅ Name added to certificate');
 
