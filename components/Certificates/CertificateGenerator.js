@@ -110,62 +110,95 @@ function CertificateGenerator() {
     try {
       console.log('🎯 Starting certificate generation...');
       console.log('📄 Participant:', certificateData.fullName);
-      console.log('🎫 License:', certificateData.licenseNumber);
 
-      // Load the template PDF
-      console.log('📥 Loading PDF template from public folder...');
-      const templateUrl = '/images/ai/2-Certificates.pdf';
-      const existingPdfBytes = await fetch(templateUrl).then(res => res.arrayBuffer());
+      // Create canvas to draw on image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       
-      console.log('✅ Template loaded, size:', existingPdfBytes.byteLength, 'bytes');
-
-      // Load the PDF document
-      const pdfDoc = await PDFDocument.load(existingPdfBytes);
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
-      const { width, height } = firstPage.getSize();
-
-      console.log('📏 PDF dimensions:', width, 'x', height);
-
-      // Add participant name (adjust X, Y coordinates as needed)
-      firstPage.drawText(certificateData.fullName.toUpperCase(), {
-        x: width / 2 - (certificateData.fullName.length * 8), // Center approximately
-        y: height / 2 + 20, // Adjust vertical position
-        size: 36,
-        color: rgb(0.117, 0.227, 0.541), // Blue color (#1e3a8a)
+      // Load the certificate template image
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = '/images/Certificate of Participant.png';
       });
 
-      // Add team/country (smaller, below name)
-      if (certificateData.teamOrCountry) {
-        firstPage.drawText(certificateData.teamOrCountry, {
-          x: width / 2 - (certificateData.teamOrCountry.length * 5), // Center approximately
-          y: height / 2 - 30, // Below the name
-          size: 20,
-          color: rgb(0.4, 0.4, 0.4), // Gray color
-        });
-      }
+      console.log('✅ Template image loaded');
 
-      // Add license number (bottom)
-      firstPage.drawText(`License: ${certificateData.licenseNumber}`, {
-        x: width / 2 - 80,
-        y: 100, // Near bottom
-        size: 14,
-        color: rgb(0.117, 0.227, 0.541), // Blue color
-      });
+      // Set canvas size to match image
+      canvas.width = img.width;
+      canvas.height = img.height;
 
-      // Save the modified PDF
-      const pdfBytes = await pdfDoc.save();
+      // Draw the template image
+      ctx.drawImage(img, 0, 0);
+
+      // Add participant name (centered below "THIS IS TO CERTIFY THAT")
+      ctx.font = 'bold 80px "Times New Roman", serif';
+      ctx.fillStyle = '#1e3a8a'; // Dark blue color
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       
-      // Download the PDF
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Certificate_${certificateData.licenseNumber}_${certificateData.fullName.replace(/\s/g, '_')}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      // Position: Center horizontally, adjust Y position based on image
+      const centerX = canvas.width / 2;
+      const nameY = canvas.height * 0.45; // Adjust this value based on where name should appear
       
-      console.log('✅ Certificate downloaded successfully!');
+      ctx.fillText(certificateData.fullName.toUpperCase(), centerX, nameY);
+
+      console.log('✅ Name added to certificate');
+
+      // Convert canvas to blob
+      canvas.toBlob(async (blob) => {
+        try {
+          // Create PDF from image
+          const pdfDoc = await PDFDocument.create();
+          const imageBytes = await blob.arrayBuffer();
+          const image = await pdfDoc.embedPng(imageBytes);
+          
+          // Add page with same dimensions as image (landscape A4)
+          const page = pdfDoc.addPage([842, 595]); // A4 landscape
+          const { width, height } = page.getSize();
+          
+          // Scale image to fit page
+          const imageAspectRatio = image.width / image.height;
+          const pageAspectRatio = width / height;
+          
+          let drawWidth, drawHeight;
+          if (imageAspectRatio > pageAspectRatio) {
+            drawWidth = width;
+            drawHeight = width / imageAspectRatio;
+          } else {
+            drawHeight = height;
+            drawWidth = height * imageAspectRatio;
+          }
+          
+          page.drawImage(image, {
+            x: (width - drawWidth) / 2,
+            y: (height - drawHeight) / 2,
+            width: drawWidth,
+            height: drawHeight,
+          });
+
+          // Save PDF
+          const pdfBytes = await pdfDoc.save();
+          
+          // Download
+          const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `Certificate_${certificateData.licenseNumber}_${certificateData.fullName.replace(/\s/g, '_')}.pdf`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+          
+          console.log('✅ Certificate downloaded successfully!');
+        } catch (error) {
+          console.error('❌ Error creating PDF:', error);
+          setError(`Failed to generate PDF: ${error.message}`);
+        }
+      }, 'image/png');
+
     } catch (error) {
       console.error('❌ Error generating certificate:', error);
       setError(`Failed to generate certificate: ${error.message}`);
