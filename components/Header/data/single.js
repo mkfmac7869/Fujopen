@@ -199,6 +199,11 @@ const single = {
       link: '/transportation'
     },
     {
+      id: 'documents',
+      name: 'header_documents', // Translation key
+      link: '/documents'
+    },
+    {
       id: 'certificates',
       name: 'header_certificates', // Translation key
       link: '/certificates'
