@@ -111,18 +111,18 @@ function MixedNav(props) {
                     <Paper
                       onMouseLeave={handleDropdownClose}
                       sx={{
-                        mt: 1,
-                        minWidth: 200,
-                        background: theme => theme.palette.mode === 'dark' 
-                          ? 'rgba(30, 41, 59, 0.95)' 
-                          : 'rgba(255, 255, 255, 0.95)',
-                        backdropFilter: 'blur(20px)',
-                        border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                        borderRadius: 2,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                        mt: 1.5,
+                        minWidth: 220,
+                        background: 'rgba(30, 41, 59, 0.7)',
+                        backdropFilter: 'blur(40px)',
+                        WebkitBackdropFilter: 'blur(40px)',
+                        border: '1px solid rgba(255, 255, 255, 0.18)',
+                        borderRadius: 3,
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
+                        overflow: 'hidden',
                       }}
                     >
-                      <List>
+                      <List sx={{ py: 1 }}>
                         {item.children.map(child => (
                           <ListItem
                             key={child.id}
@@ -131,11 +131,13 @@ function MixedNav(props) {
                             onClick={handleDropdownClose}
                             sx={{
                               cursor: 'pointer',
-                              transition: 'all 0.2s',
+                              transition: 'all 0.3s ease',
+                              py: 1.5,
+                              px: 3,
+                              color: '#ffffff',
                               '&:hover': {
-                                background: theme => theme.palette.mode === 'dark'
-                                  ? 'rgba(99, 102, 241, 0.2)'
-                                  : 'rgba(99, 102, 241, 0.1)',
+                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3))',
+                                transform: 'translateX(8px)',
                               }
                             }}
                           >
@@ -143,8 +145,10 @@ function MixedNav(props) {
                               primary={t(`${prefix}.${child.name}`)}
                               sx={{ 
                                 '& .MuiListItemText-primary': { 
-                                  fontWeight: 600,
-                                  fontSize: '0.95rem'
+                                  fontWeight: 700,
+                                  fontSize: '1rem',
+                                  color: '#ffffff',
+                                  letterSpacing: '0.3px',
                                 } 
                               }}
                             />
