@@ -72,13 +72,23 @@ function ChampionshipOutline() {
     const locale = router.locale || 'en';
     const jsonFile = locale === 'en' ? '/details.json' : `/details-${locale}.json`;
     
+    console.log('🌍 Loading outline data for locale:', locale);
+    console.log('📄 JSON file:', jsonFile);
+    
     fetch(jsonFile)
-      .then(res => res.json())
-      .then(data => setEventData(data))
+      .then(res => {
+        console.log('✅ Fetch successful for:', jsonFile);
+        return res.json();
+      })
+      .then(data => {
+        console.log('📊 Data loaded:', data.event_name);
+        setEventData(data);
+      })
       .catch(err => {
-        console.error(`Error loading event data for ${locale}:`, err);
+        console.error(`❌ Error loading event data for ${locale}:`, err);
         // Fallback to English if locale file not found
         if (locale !== 'en') {
+          console.log('🔄 Falling back to English...');
           fetch('/details.json')
             .then(res => res.json())
             .then(data => setEventData(data))
