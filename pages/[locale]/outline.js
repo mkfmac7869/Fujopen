@@ -1,6 +1,8 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Head from 'next/head';
+import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 import {
   Container,
   Box,
@@ -44,8 +46,15 @@ import WarningIcon from '@mui/icons-material/Warning';
 
 function ChampionshipOutline() {
   const theme = useTheme();
+  const { t } = useTranslation('common');
+  const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [eventData, setEventData] = useState(null);
+  
+  // Wait for router to be ready
+  if (!router.isReady) {
+    return null;
+  }
   
   // Glassmorphic card style
   const glassCard = {
@@ -67,7 +76,7 @@ function ChampionshipOutline() {
   }, []);
 
   if (!eventData) {
-    return <Container sx={{ py: 10, textAlign: 'center' }}><Typography>Loading...</Typography></Container>;
+    return <Container sx={{ py: 10, textAlign: 'center' }}><Typography>{t('ai-landing.outline_loading')}</Typography></Container>;
   }
 
   return (
@@ -118,7 +127,7 @@ function ChampionshipOutline() {
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <EventIcon />
-                  Organizer
+                  {t('ai-landing.outline_organizer')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>{eventData.organizer.name}</Typography>
                 <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>{eventData.organizer.address}</Typography>
@@ -138,7 +147,7 @@ function ChampionshipOutline() {
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <LocationOnIcon />
-                  Competition Venue
+                  {t('ai-landing.outline_venue')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>{eventData.venue.name}</Typography>
                 <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>{eventData.venue.address}</Typography>
@@ -151,7 +160,7 @@ function ChampionshipOutline() {
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <InfoIcon />
-                  Event Director
+                  {t('ai-landing.outline_director')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>{eventData.event_director.name}</Typography>
                 <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -167,7 +176,7 @@ function ChampionshipOutline() {
         <Card elevation={0} sx={{ mb: 6, ...glassCard }}>
           <CardContent>
             <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, color: 'primary.main' }}>
-              Competition Information
+              {t('ai-landing.outline_competition_info')}
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
@@ -225,7 +234,7 @@ function ChampionshipOutline() {
         {/* Medal Events */}
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 4, textAlign: 'center', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
           <EmojiEventsIcon sx={{ fontSize: 40 }} />
-          Medal Events
+          {t('ai-landing.outline_medal_events')}
         </Typography>
         
         {Object.entries(eventData.medal_events).map(([division, genders]) => (
@@ -256,10 +265,10 @@ function ChampionshipOutline() {
         <Card elevation={0} sx={{ ...glassCard, mb: 6, mt: 6 }}>
           <CardContent>
             <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, color: 'primary.main' }}>
-              Eligibility Requirements
+              {t('ai-landing.outline_eligibility')}
             </Typography>
             
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Athletes</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>{t('ai-landing.outline_athletes')}</Typography>
             <List>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
@@ -294,7 +303,7 @@ function ChampionshipOutline() {
 
             <Divider sx={{ my: 3 }} />
 
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Coaches</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>{t('ai-landing.outline_coaches')}</Typography>
             <List>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
@@ -320,7 +329,7 @@ function ChampionshipOutline() {
         <Card elevation={0} sx={{ ...glassCard, mb: 6 }}>
           <CardContent>
             <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, color: 'primary.main' }}>
-              Registration & Fees
+              {t('ai-landing.outline_registration_fees')}
             </Typography>
             <Typography variant="body1" sx={{ mb: 2 }}>
               <strong>Registration Method:</strong> {eventData.sport_entries_and_fees.entry_method}
@@ -384,17 +393,17 @@ function ChampionshipOutline() {
 
         {/* Detailed Schedule */}
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 4, textAlign: 'center', color: 'primary.main' }}>
-          Event Schedule
+          {t('ai-landing.outline_event_schedule')}
         </Typography>
         <TableContainer component={Paper} elevation={0} sx={{ ...glassCard, mb: 6 }}>
           <Table>
             <TableHead>
               <TableRow sx={{ background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)' }}>
-                <TableCell sx={{ color: 'white', fontWeight: 700 }}>Date</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 700 }}>Time</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 700 }}>Activity</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 700 }}>Location</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 700 }}>Division</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 700 }}>{t('ai-landing.outline_date')}</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 700 }}>{t('ai-landing.outline_time')}</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 700 }}>{t('ai-landing.outline_activity')}</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 700 }}>{t('ai-landing.outline_location')}</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 700 }}>{t('ai-landing.outline_division')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -404,7 +413,7 @@ function ChampionshipOutline() {
                   <TableCell>{schedule.time || '-'}</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>{schedule.activity}</TableCell>
                   <TableCell>{schedule.location || '-'}</TableCell>
-                  <TableCell>{schedule.division || 'All'}</TableCell>
+                  <TableCell>{schedule.division || t('ai-landing.outline_all')}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
