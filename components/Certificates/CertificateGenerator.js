@@ -111,6 +111,12 @@ function CertificateGenerator() {
       console.log('🎯 Starting certificate generation...');
       console.log('📄 Participant:', certificateData.fullName);
 
+      // Load custom font
+      const font = new FontFace('InterExtraBold', 'url(/images/Inter_24pt-ExtraBold.ttf)');
+      await font.load();
+      document.fonts.add(font);
+      console.log('✅ Custom font loaded');
+
       // Create canvas to draw on image
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -135,7 +141,7 @@ function CertificateGenerator() {
       ctx.drawImage(img, 0, 0);
 
       // Add participant name (centered below "THIS IS TO CERTIFY THAT")
-      ctx.font = 'bold 80px "Times New Roman", serif';
+      ctx.font = '80px "InterExtraBold", "Inter", sans-serif';
       ctx.fillStyle = '#1e3a8a'; // Dark blue color
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
