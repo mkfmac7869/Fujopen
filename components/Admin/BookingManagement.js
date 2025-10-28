@@ -406,34 +406,21 @@ function BookingManagement() {
     filteredBookings.forEach((booking) => {
       const bookings = booking.individualBookings || [booking];
       
-      bookings.forEach((individualBooking, idx) => {
-        // Add each guest as a row
-        individualBooking.guests?.forEach((guest, guestIdx) => {
-          exportData.push({
-            'Team/Club': booking.userName,
-            'Email': booking.userEmail,
-            'Booking Group ID': booking.groupId || booking.id,
-            'Reservation #': idx + 1,
-            'Hotel': individualBooking.hotelName,
-            'Location': individualBooking.hotelLocation,
-            'Room Type': individualBooking.roomType,
-            'Room Price': individualBooking.roomPrice,
-            'Number of Rooms': individualBooking.numberOfRooms,
-            'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
-            'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
-            'Nights': individualBooking.numberOfNights,
-            'Guest #': guestIdx + 1,
-            'Guest Name': guest.fullName,
-            'Passport Number': guest.passportNumber,
-            'Room Number': guest.roomNumber,
-            'Reservation Total': individualBooking.totalPrice,
-            'Grand Total': booking.totalPrice,
-            'Status': statusConfig[booking.status]?.label || booking.status,
-            'Payment Status': booking.paymentStatus || 'pending',
-            'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
-            'Created Date': new Date(booking.createdAt).toLocaleString(),
-            'Last Updated': new Date(booking.lastUpdated).toLocaleString(),
-          });
+      bookings.forEach((individualBooking) => {
+        exportData.push({
+          'Team/Club': booking.userName,
+          'Email': booking.userEmail,
+          'Hotel': individualBooking.hotelName,
+          'Room Type': individualBooking.roomType,
+          'Number of Rooms': individualBooking.numberOfRooms,
+          'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
+          'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
+          'Nights': individualBooking.numberOfNights,
+          'Status': statusConfig[booking.status]?.label || booking.status,
+          'Payment Status': booking.paymentStatus || 'pending',
+          'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
+          'Created Date': new Date(booking.createdAt).toLocaleString(),
+          'Last Updated': new Date(booking.lastUpdated).toLocaleString(),
         });
       });
     });
@@ -443,11 +430,55 @@ function BookingManagement() {
     XLSX.utils.book_append_sheet(wb, ws, 'Hotel Bookings');
     
     // Auto-size columns
-    const maxWidth = 50;
+    const maxWidth = 20;
     const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
     ws['!cols'] = wscols;
     
     XLSX.writeFile(wb, `Hotel_Bookings_${new Date().toLocaleDateString()}.xlsx`);
+  };
+
+  // Export Guest List - All guests per team and hotel and room type
+  const handleExportGuestList = () => {
+    const exportData = [];
+    
+    filteredBookings.forEach((booking) => {
+      const bookings = booking.individualBookings || [booking];
+      
+      bookings.forEach((individualBooking) => {
+        individualBooking.guests?.forEach((guest, guestIdx) => {
+          exportData.push({
+            'Team/Club': booking.userName,
+            'Email': booking.userEmail,
+            'Hotel': individualBooking.hotelName,
+            'Room Type': individualBooking.roomType,
+            'Number of Rooms': individualBooking.numberOfRooms,
+            'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
+            'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
+            'Nights': individualBooking.numberOfNights,
+            'Guest #': guestIdx + 1,
+            'Guest Full Name': guest.fullName,
+            'Passport Number': guest.passportNumber,
+            'Nationality': guest.nationality || 'N/A',
+            'Date of Birth': guest.dateOfBirth || 'N/A',
+            'Room Number': guest.roomNumber || 'TBA',
+            'Special Requests': guest.specialRequests || 'None',
+            'Status': statusConfig[booking.status]?.label || booking.status,
+            'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
+          });
+        });
+      });
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Guest List');
+    
+    // Auto-size columns
+    const maxWidth = 20;
+    const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
+    ws['!cols'] = wscols;
+    
+    XLSX.writeFile(wb, `Hotel_Guest_List_${new Date().toLocaleDateString()}.xlsx`);
   };
 
   // Export single team to Excel
@@ -802,7 +833,17 @@ function BookingManagement() {
                 size="small"
                 sx={{ background: '#10b981', '&:hover': { background: '#059669' } }}
               >
-                Excel
+                Export Bookings
+              </Button>
+              <Button 
+                variant="contained" 
+                startIcon={<DownloadIcon />}
+                onClick={handleExportGuestList}
+                disabled={filteredBookings.length === 0}
+                size="small"
+                sx={{ background: '#6366f1', '&:hover': { background: '#4f46e5' } }}
+              >
+                Export Guest List
               </Button>
             </Box>
           </Grid>
@@ -970,7 +1011,17 @@ function BookingManagement() {
               size="small"
               sx={{ background: '#10b981', '&:hover': { background: '#059669' } }}
             >
-              Export Excel
+              Export Bookings
+            </Button>
+            <Button 
+              variant="contained" 
+              startIcon={<DownloadIcon />}
+              onClick={handleExportGuestList}
+              disabled={bookings.length === 0}
+              size="small"
+              sx={{ background: '#6366f1', '&:hover': { background: '#4f46e5' } }}
+            >
+              Export Guest List
             </Button>
           </Box>
           
