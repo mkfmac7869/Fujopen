@@ -50,10 +50,22 @@ function MixedNav(props) {
   const [curURL, setCurURL] = useState('');
   const [curOrigin, setCurOrigin] = useState('');
   const [langPath, setLangPath] = useState('');
+  const [dropdownAnchor, setDropdownAnchor] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   const handleToggle = (event) => {
     setAnchorEl(event.currentTarget);
     toggle();
+  };
+
+  const handleDropdownOpen = (event, itemId) => {
+    setDropdownAnchor(event.currentTarget);
+    setActiveDropdown(itemId);
+  };
+
+  const handleDropdownClose = () => {
+    setDropdownAnchor(null);
+    setActiveDropdown(null);
   };
 
   useEffect(() => {
@@ -65,6 +77,7 @@ function MixedNav(props) {
 
     // Close menu when route changes
     close();
+    handleDropdownClose();
   }, [pathname]);
 
   return (
@@ -76,18 +89,87 @@ function MixedNav(props) {
     >
       {menuPrimary.map(item => (
         <li key={item.id}>
-          {singleNav ? (
-            <Button component={LocaleLink} to={item.link}>
-              {t(`${prefix}.header_` + item.id)}
-            </Button>
+          {item.children ? (
+            // Dropdown menu item
+            <>
+              <Button
+                onMouseEnter={(e) => handleDropdownOpen(e, item.id)}
+                sx={{ position: 'relative' }}
+              >
+                {t(`${prefix}.${item.name}`)}
+                <Icon sx={{ ml: 0.5, fontSize: '1rem' }}>arrow_drop_down</Icon>
+              </Button>
+              <Popper
+                open={activeDropdown === item.id}
+                anchorEl={dropdownAnchor}
+                placement="bottom-start"
+                transition
+                sx={{ zIndex: 9999 }}
+              >
+                {({ TransitionProps }) => (
+                  <Fade {...TransitionProps} timeout={200}>
+                    <Paper
+                      onMouseLeave={handleDropdownClose}
+                      sx={{
+                        mt: 1,
+                        minWidth: 200,
+                        background: theme => theme.palette.mode === 'dark' 
+                          ? 'rgba(30, 41, 59, 0.95)' 
+                          : 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                        borderRadius: 2,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      <List>
+                        {item.children.map(child => (
+                          <ListItem
+                            key={child.id}
+                            component={LocaleLink}
+                            to={child.link}
+                            onClick={handleDropdownClose}
+                            sx={{
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                background: theme => theme.palette.mode === 'dark'
+                                  ? 'rgba(99, 102, 241, 0.2)'
+                                  : 'rgba(99, 102, 241, 0.1)',
+                              }
+                            }}
+                          >
+                            <ListItemText 
+                              primary={t(`${prefix}.${child.name}`)}
+                              sx={{ 
+                                '& .MuiListItemText-primary': { 
+                                  fontWeight: 600,
+                                  fontSize: '0.95rem'
+                                } 
+                              }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Paper>
+                  </Fade>
+                )}
+              </Popper>
+            </>
           ) : (
-            <Button component={LocaleLink} to={item.link}>
-              {t(`${prefix}.header_` + item.id)}
-            </Button>
+            // Regular menu item
+            singleNav ? (
+              <Button component={LocaleLink} to={item.link}>
+                {t(`${prefix}.${item.name}`)}
+              </Button>
+            ) : (
+              <Button component={LocaleLink} to={item.link}>
+                {t(`${prefix}.${item.name}`)}
+              </Button>
+            )
           )}
         </li>
       ))}
-      {/* All Pages dropdown removed */}
     </Scrollspy>
   );
 }

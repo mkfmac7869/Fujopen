@@ -184,19 +184,25 @@ const single = {
       link: '/'
     },
     {
-      id: 'visa',
-      name: 'header_visa', // Translation key
-      link: '/visa'
-    },
-    {
-      id: 'hotel',
-      name: 'header_hotel', // Translation key
-      link: '/hotel'
-    },
-    {
-      id: 'transportation',
-      name: 'header_transportation', // Translation key
-      link: '/transportation'
+      id: 'logistics',
+      name: 'header_logistics', // Translation key
+      children: [
+        {
+          id: 'visa',
+          name: 'header_visa',
+          link: '/visa'
+        },
+        {
+          id: 'hotel',
+          name: 'header_hotel',
+          link: '/hotel'
+        },
+        {
+          id: 'transportation',
+          name: 'header_transportation',
+          link: '/transportation'
+        }
+      ]
     },
     {
       id: 'documents',
