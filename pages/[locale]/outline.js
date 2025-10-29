@@ -411,45 +411,6 @@ function ChampionshipOutline() {
           </Table>
         </TableContainer>
 
-        {/* Logistics */}
-        <Card elevation={0} sx={{ ...glassCard, mb: 6 }}>
-          <CardContent>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, color: 'primary.main' }}>
-              Logistics & Services
-            </Typography>
-            
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Random Weigh-in</Typography>
-            <Typography variant="body2" sx={{ ml: 2 }}>
-              <strong>Time:</strong> {eventData.logistics.random_weigh_in.time}
-            </Typography>
-            <Typography variant="body2" sx={{ ml: 2, mb: 2 }}>
-              <strong>Publication:</strong> {eventData.logistics.random_weigh_in.publication_time} on {eventData.logistics.random_weigh_in.publication_platforms.join(', ')}
-            </Typography>
-
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, mt: 3 }}>Accommodation & Visa</Typography>
-            <Typography variant="body2" sx={{ ml: 2, mb: 1 }}>
-              <strong>Transportation:</strong> {eventData.logistics.accommodation_and_visa.transportation_provided}
-            </Typography>
-            
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, mt: 2 }}>Free Visa Criteria:</Typography>
-            <Box sx={{ ml: 2 }}>
-              {eventData.logistics.accommodation_and_visa.free_visa_criteria.map((criteria, idx) => (
-                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <CheckCircleIcon color="success" fontSize="small" />
-                  <Typography variant="body2">{criteria}</Typography>
-                </Box>
-              ))}
-            </Box>
-            
-            <Box sx={{ mt: 2, p: 2, background: 'rgba(76, 175, 80, 0.1)', borderRadius: 2 }}>
-              <Typography variant="body2">
-                <EmailIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Visa Submission: <strong>{eventData.logistics.accommodation_and_visa.visa_submission_email}</strong>
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-
         {/* Awards */}
         <Card elevation={0} sx={{ ...glassCard, mb: 6 }}>
           <CardContent>

@@ -449,21 +449,21 @@ function BookingManagement() {
       bookings.forEach((individualBooking, bookingIdx) => {
         const bookingNumber = bookings.length > 1 ? `Booking ${bookingIdx + 1}` : '';
         
-        exportData.push({
-          'Team/Club': booking.userName,
-          'Email': booking.userEmail,
+          exportData.push({
+            'Team/Club': booking.userName,
+            'Email': booking.userEmail,
           'Booking #': bookingNumber,
-          'Hotel': individualBooking.hotelName,
-          'Room Type': individualBooking.roomType,
-          'Number of Rooms': individualBooking.numberOfRooms,
-          'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
-          'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
-          'Nights': individualBooking.numberOfNights,
-          'Status': statusConfig[booking.status]?.label || booking.status,
-          'Payment Status': booking.paymentStatus || 'pending',
-          'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
-          'Created Date': new Date(booking.createdAt).toLocaleString(),
-          'Last Updated': new Date(booking.lastUpdated).toLocaleString(),
+            'Hotel': individualBooking.hotelName,
+            'Room Type': individualBooking.roomType,
+            'Number of Rooms': individualBooking.numberOfRooms,
+            'Check-in': new Date(individualBooking.checkInDate).toLocaleDateString(),
+            'Check-out': new Date(individualBooking.checkOutDate).toLocaleDateString(),
+            'Nights': individualBooking.numberOfNights,
+            'Status': statusConfig[booking.status]?.label || booking.status,
+            'Payment Status': booking.paymentStatus || 'pending',
+            'Confirmation Number': booking.confirmationNumber || Object.values(booking.confirmationNumbers || {}).join(', ') || 'N/A',
+            'Created Date': new Date(booking.createdAt).toLocaleString(),
+            'Last Updated': new Date(booking.lastUpdated).toLocaleString(),
         });
       });
     });
@@ -829,13 +829,13 @@ function BookingManagement() {
           
           yPos = doc.lastAutoTable.finalY + 15;
         }
-      }
-      
+        }
+        
       // Add page if needed for total
       if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
+          doc.addPage();
+          yPos = 20;
+        }
       
       // Grand Total Section
       yPos += 5;
