@@ -6,13 +6,13 @@ const resend = new Resend('re_Fkx6FBkJ_ENMg8QQpgD8jgTDtHnodZu1S');
 
 // Configuration
 const FROM_EMAIL = 'Fujairah Open 2026 <noreply@fujopen.com>';
-const APP_URL = 'https://fujopen.com'; // Changed from www.fujopen.com to fujopen.com
+const APP_URL = 'https://fujopen.com';
 const LOGO_URL = 'https://fujopen.com/images/fujairah-logo.png'; // Use domain URL for logo
 
 // CORS configuration
 const corsOptions = {
   origin: [
-    'https://www.fujopen.com',
+    'https://fujopen.com',
     'https://fujopen.com',
     'https://fuj2026-f22a7.web.app',
     'https://fuj2026-f22a7.firebaseapp.com',
@@ -301,7 +301,7 @@ exports.sendWelcomeEmail = functions.https.onRequest(async (req, res) => {
                 <div class="glass-box">
                   <h3 style="font-size: 18px; margin-bottom: 15px;">📞 Need Help?</h3>
                   <p style="font-size: 15px;">
-                    Contact us at <a href="mailto:info@fujairahopen.com" style="color: #93c5fd; font-weight: 700; text-decoration: none;">info@fujairahopen.com</a>
+                    Contact us at <a href="mailto:fuj.open@gmail.com" style="color: #93c5fd; font-weight: 700; text-decoration: none;">fuj.open@gmail.com</a>
                   </p>
                 </div>
               </div>
@@ -312,7 +312,7 @@ exports.sendWelcomeEmail = functions.https.onRequest(async (req, res) => {
                 </div>
                 <p style="margin: 8px 0; font-size: 14px; font-weight: 700; color: #e0e7ff;">13th Fujairah Open 2026</p>
                 <p style="margin: 5px 0; font-size: 12px;">International Taekwondo Championships</p>
-                <p style="margin: 12px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+                <p style="margin: 12px 0; font-size: 12px;">fujopen.com | fuj.open@gmail.com</p>
               </div>
             </div>
           </div>
@@ -402,7 +402,7 @@ exports.sendAccountApproved = functions.https.onRequest(async (req, res) => {
                 </div>
                 <p style="margin: 8px 0; font-size: 14px; font-weight: 700; color: #e0e7ff;">13th Fujairah Open 2026</p>
                 <p style="margin: 5px 0; font-size: 12px;">International Taekwondo Championships</p>
-                <p style="margin: 12px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+                <p style="margin: 12px 0; font-size: 12px;">fujopen.com | fuj.open@gmail.com</p>
               </div>
             </div>
           </div>
@@ -811,7 +811,7 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
                 </div>
                 <p style="margin: 8px 0; font-size: 14px; font-weight: 700; color: #e0e7ff;">13th Fujairah Open 2026</p>
                 <p style="margin: 5px 0; font-size: 12px;">International Taekwondo Championships</p>
-                <p style="margin: 12px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+                <p style="margin: 12px 0; font-size: 12px;">fujopen.com | fuj.open@gmail.com</p>
               </div>
             </div>
           </div>
@@ -950,7 +950,7 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
                           If you have questions about this decision, contact our support team.
                         </p>
                         <p style="margin-top: 15px; font-size: 16px;">
-                          📧 <a href="mailto:info@fujairahopen.com" style="color: #93c5fd; font-weight: 700; text-decoration: none;">info@fujairahopen.com</a>
+                          📧 <a href="mailto:fuj.open@gmail.com" style="color: #93c5fd; font-weight: 700; text-decoration: none;">fuj.open@gmail.com</a>
                         </p>
                       </div>
                     ` : ''}
@@ -991,7 +991,7 @@ exports.sendVisaEmail = functions.https.onRequest(async (req, res) => {
                 </div>
                 <p style="margin: 8px 0; font-size: 14px; font-weight: 700; color: #e0e7ff;">13th Fujairah Open 2026</p>
                 <p style="margin: 5px 0; font-size: 12px;">International Taekwondo Championships</p>
-                <p style="margin: 12px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+                <p style="margin: 12px 0; font-size: 12px;">fujopen.com | fuj.open@gmail.com</p>
               </div>
             </div>
           </div>
@@ -1170,7 +1170,7 @@ exports.sendHotelEmail = functions.https.onRequest(async (req, res) => {
               <div class="glass-box">
                 <h3 style="font-size: 18px; margin-bottom: 15px;">📞 Questions?</h3>
                 <p style="font-size: 15px;">
-                  Contact us at <a href="mailto:info@fujairahopen.com" style="color: #93c5fd; font-weight: 700; text-decoration: none;">info@fujairahopen.com</a>
+                  Contact us at <a href="mailto:fuj.open@gmail.com" style="color: #93c5fd; font-weight: 700; text-decoration: none;">fuj.open@gmail.com</a>
                 </p>
               </div>
             </div>
@@ -1181,7 +1181,7 @@ exports.sendHotelEmail = functions.https.onRequest(async (req, res) => {
               </div>
               <p style="margin: 8px 0; font-size: 14px; font-weight: 700; color: #e0e7ff;">13th Fujairah Open 2026</p>
               <p style="margin: 5px 0; font-size: 12px;">International Taekwondo Championships</p>
-              <p style="margin: 12px 0; font-size: 12px;">www.fujopen.com | info@fujairahopen.com</p>
+              <p style="margin: 12px 0; font-size: 12px;">fujopen.com | fuj.open@gmail.com</p>
             </div>
           </div>
         </div>
