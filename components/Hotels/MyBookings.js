@@ -164,6 +164,7 @@ function MyBookings() {
       const { updateDoc, doc } = await import('firebase/firestore');
 
       await updateDoc(doc(db, 'hotelBookings', selectedBooking.id), {
+        status: 'pay_on_site_pending',
         payOnSiteRequest: {
           requested: true,
           reason: onSiteReason,
