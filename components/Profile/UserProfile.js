@@ -37,7 +37,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import HotelIcon from '@mui/icons-material/Hotel';
 import { useAuth } from '../../lib/AuthContext';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../lib/firebase';
@@ -240,6 +240,8 @@ function UserProfile() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [visaCount, setVisaCount] = useState(0);
+  const [bookingCount, setBookingCount] = useState(0);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -275,6 +277,29 @@ function UserProfile() {
     };
 
     fetchUserData();
+  }, [user]);
+
+  // Fetch real counts from Firestore
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (user) {
+        try {
+          // Count visa applications
+          const visaQuery = query(collection(db, 'visaApplications'), where('userId', '==', user.uid));
+          const visaSnapshot = await getDocs(visaQuery);
+          setVisaCount(visaSnapshot.size);
+
+          // Count hotel bookings
+          const bookingQuery = query(collection(db, 'hotelBookings'), where('userId', '==', user.uid));
+          const bookingSnapshot = await getDocs(bookingQuery);
+          setBookingCount(bookingSnapshot.size);
+        } catch (error) {
+          console.error('Error fetching counts:', error);
+        }
+      }
+    };
+
+    fetchCounts();
   }, [user]);
 
   const handleInputChange = (e) => {
@@ -406,8 +431,8 @@ function UserProfile() {
   }
 
   const stats = {
-    visaApplications: userData.visaApplicationsCount || 0,
-    hotelBookings: userData.hotelBookingsCount || 0,
+    visaApplications: visaCount,
+    hotelBookings: bookingCount,
     memberSince: userData.createdAt ? new Date(userData.createdAt).getFullYear() : new Date().getFullYear(),
   };
 
