@@ -157,8 +157,8 @@ function InvoiceGenerator({ booking, open, onClose }) {
                     )}
                     {booking.status === 'confirmed' && (
                       <Chip 
-                        label="PAID" 
-                        color="success"
+                        label={booking.payOnSiteRequest?.status === 'approved' ? 'PAYING ON SITE' : 'PAID'} 
+                        color={booking.payOnSiteRequest?.status === 'approved' ? 'secondary' : 'success'}
                         sx={{ mt: 1, fontWeight: 800 }}
                       />
                     )}
@@ -550,8 +550,8 @@ function InvoiceGenerator({ booking, open, onClose }) {
             </Typography>
             {(booking.status === 'confirmed' || booking.paymentStatus === 'paid') && (
               <Chip 
-                label="PAID" 
-                color="success"
+                label={booking.payOnSiteRequest?.status === 'approved' ? 'PAYING ON SITE' : 'PAID'} 
+                color={booking.payOnSiteRequest?.status === 'approved' ? 'secondary' : 'success'}
                 sx={{ ml: 2, fontWeight: 800, display: 'block', mt: 1 }}
               />
             )}
