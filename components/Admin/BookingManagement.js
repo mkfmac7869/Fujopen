@@ -918,7 +918,8 @@ function BookingManagement() {
           {/* Filters */}
           <Box className={classes.filterSection}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+          {/* Search Bar - Full Width Top */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               placeholder="Search by name, hotel, or email..."
@@ -929,24 +930,9 @@ function BookingManagement() {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <Tabs
-              value={filterStatus}
-              onChange={(e, val) => setFilterStatus(val)}
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              <Tab label="All" value="all" />
-              <Tab label="Reviewing by OC" value="reviewing" />
-              <Tab label="Approved - Awaiting Payment" value="approved" />
-              <Tab label="Pending Pay on Site" value="pay_on_site_pending" />
-              <Tab label="Payment Proof Uploaded" value="payment_uploaded" />
-              <Tab label="Confirmed" value="confirmed" />
-              <Tab label="Cancelled" value="cancelled" />
-              <Tab label="Completed" value="completed" />
-            </Tabs>
-          </Grid>
-          <Grid item xs={12} sm={4}>
+          
+          {/* Action Buttons - Top Right */}
+          <Grid item xs={12} sm={6}>
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <Chip label={`Total: ${filteredBookings.length}`} color="primary" />
               <Button 
@@ -979,6 +965,41 @@ function BookingManagement() {
                 Export Guest List
               </Button>
             </Box>
+          </Grid>
+          
+          {/* Status Tabs - Full Width Below */}
+          <Grid item xs={12}>
+            <Tabs
+              value={filterStatus}
+              onChange={(e, val) => setFilterStatus(val)}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                minHeight: 56,
+                '& .MuiTab-root': {
+                  minHeight: 56,
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  px: 4,
+                  py: 2,
+                  transition: 'all 0.3s ease',
+                },
+                '& .Mui-selected': {
+                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))',
+                }
+              }}
+            >
+              <Tab label="All" value="all" />
+              <Tab label="Reviewing by OC" value="reviewing" />
+              <Tab label="Approved - Awaiting Payment" value="approved" />
+              <Tab label="Pending Pay on Site" value="pay_on_site_pending" />
+              <Tab label="Payment Proof Uploaded" value="payment_uploaded" />
+              <Tab label="Confirmed" value="confirmed" />
+              <Tab label="Cancelled" value="cancelled" />
+              <Tab label="Completed" value="completed" />
+            </Tabs>
           </Grid>
         </Grid>
       </Box>
