@@ -247,9 +247,11 @@
   "footer_news": "خبریں",
   "ai-landing": {
     "header_home": "ہوم",
+    "header_logistics": "لاجسٹکس",
     "header_visa": "ویزا",
     "header_hotel": "ہوٹل",
     "header_transportation": "نقل و حمل",
+    "header_documents": "دستاویزات",
     "header_certificates": "سرٹیفکیٹ",
     "header_profile": "پروفائل",
     "header_feature": "خصوصیات",

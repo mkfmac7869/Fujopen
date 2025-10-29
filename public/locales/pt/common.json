@@ -247,9 +247,11 @@
   "footer_news": "notícias",
   "ai-landing": {
     "header_home": "Início",
+    "header_logistics": "Logística",
     "header_visa": "Visto",
     "header_hotel": "Hotel",
     "header_transportation": "Transporte",
+    "header_documents": "Documentos",
     "header_certificates": "Certificados",
     "header_profile": "Perfil",
     "header_feature": "recursos",

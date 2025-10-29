@@ -247,9 +247,11 @@
   "footer_news": "новости",
   "ai-landing": {
     "header_home": "Главная",
+    "header_logistics": "Логистика",
     "header_visa": "Виза",
     "header_hotel": "Отель",
     "header_transportation": "Транспорт",
+    "header_documents": "Документы",
     "header_certificates": "Сертификаты",
     "header_profile": "Профиль",
     "header_feature": "особенности",

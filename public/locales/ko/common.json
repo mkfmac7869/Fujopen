@@ -247,9 +247,11 @@
   "footer_news": "뉴스",
   "ai-landing": {
     "header_home": "홈",
+    "header_logistics": "물류",
     "header_visa": "비자",
     "header_hotel": "호텔",
     "header_transportation": "교통",
+    "header_documents": "문서",
     "header_certificates": "인증서",
     "header_profile": "프로필",
     "header_feature": "특징",

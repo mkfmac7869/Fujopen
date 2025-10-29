@@ -247,9 +247,11 @@
   "footer_news": "اخبار",
   "ai-landing": {
     "header_home": "خانه",
+    "header_logistics": "لجستیک",
     "header_visa": "ویزا",
     "header_hotel": "هتل",
     "header_transportation": "حمل و نقل",
+    "header_documents": "اسناد",
     "header_certificates": "گواهینامه‌ها",
     "header_profile": "پروفایل",
     "header_feature": "ویژگی‌ها",

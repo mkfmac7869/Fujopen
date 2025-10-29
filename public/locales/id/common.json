@@ -247,9 +247,11 @@
   "footer_news": "berita",
   "ai-landing": {
     "header_home": "Beranda",
+    "header_logistics": "Logistik",
     "header_visa": "Visa",
     "header_hotel": "Hotel",
     "header_transportation": "Transportasi",
+    "header_documents": "Dokumen",
     "header_certificates": "Sertifikat",
     "header_profile": "Profil",
     "header_feature": "fitur",
