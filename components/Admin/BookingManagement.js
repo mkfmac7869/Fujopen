@@ -2173,6 +2173,7 @@ function BookingManagement() {
                         onClick={async () => {
                           const { updateDoc, doc } = await import('firebase/firestore');
                           await updateDoc(doc(db, 'hotelBookings', selectedBooking.id), {
+                            status: 'pay_on_site_pending',
                             'payOnSiteRequest.status': 'approved',
                             'payOnSiteRequest.approvedBy': 'admin',
                             'payOnSiteRequest.approvedAt': new Date().toISOString(),
