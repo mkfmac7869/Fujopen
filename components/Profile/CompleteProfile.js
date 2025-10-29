@@ -291,16 +291,30 @@ function CompleteProfile({ onComplete }) {
         console.error('⚠️ Failed to send admin notification:', emailError);
       }
 
-      // Show success dialog
+      // Stop loading
+      setLoading(false);
+      
+      // Show success dialog and sign out when closed
+      const handleDialogClose = async () => {
+        console.log('Dialog closed, signing out...');
+        try {
+          await signOut(auth);
+          console.log('✅ Signed out successfully');
+          window.location.href = '/login';
+        } catch (error) {
+          console.error('Error signing out:', error);
+          window.location.href = '/login';
+        }
+      };
+      
       showDialog({
         type: 'success',
         message: 'Profile completed successfully! Your account is now pending admin approval. You will receive an email once approved.',
-        onClose: async () => {
-          // Sign out and redirect to login
-          await signOut(auth);
-          window.location.href = '/login';
-        }
       });
+
+      // Also set timeout as backup in case dialog doesn't close properly
+      setTimeout(handleDialogClose, 5000);
+      
     } catch (error) {
       console.error('Error completing profile:', error);
       setError(error.message || 'Failed to complete profile');
@@ -534,7 +548,22 @@ function CompleteProfile({ onComplete }) {
         </Paper>
       </Container>
       
-      <CustomDialog {...dialog} onClose={closeDialog} />
+      <CustomDialog 
+        {...dialog} 
+        onClose={async () => {
+          closeDialog();
+          // If dialog is success type, sign out after closing
+          if (dialog.type === 'success') {
+            try {
+              await signOut(auth);
+              window.location.href = '/login';
+            } catch (error) {
+              console.error('Error signing out:', error);
+              window.location.href = '/login';
+            }
+          }
+        }} 
+      />
     </>
   );
 }
