@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 // Use this below for Server Side Render/Translation (SSR)
 // import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -27,8 +28,14 @@ function Landing() {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const router = useRouter();
 
   const { classes, cx } = useSpacing();
+
+  // Wait for router to be ready to prevent translation key flashing
+  if (!router.isReady) {
+    return null;
+  }
 
   return (
     <Fragment>
