@@ -852,7 +852,7 @@ function BookingManagement() {
       doc.setTextColor(100, 100, 100);
       doc.setFont(undefined, 'normal');
       doc.text('13th Fujairah Open International Taekwondo Championships 2026', pageWidth / 2, yPos, { align: 'center' });
-      doc.text('www.fujopen.com | info@fujairahopen.com', pageWidth / 2, yPos + 5, { align: 'center' });
+      doc.text('fujopen.com | fuj.open@gmail.com', pageWidth / 2, yPos + 5, { align: 'center' });
       
       // Divider line above footer
       doc.setDrawColor(200, 200, 200);

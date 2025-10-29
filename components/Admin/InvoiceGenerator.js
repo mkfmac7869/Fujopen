@@ -568,7 +568,7 @@ function InvoiceGenerator({ booking, open, onClose }) {
                   Thank you for your booking!
                 </Typography>
                 <Typography variant="caption" display="block" sx={{ color: '#6b7280' }}>
-                  For inquiries, please contact: info@fujairahopen.com
+                  For inquiries, please contact: fuj.open@gmail.com
                 </Typography>
               </Grid>
               <Grid item xs={4} sx={{ textAlign: 'right' }}>
