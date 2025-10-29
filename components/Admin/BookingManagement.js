@@ -2194,17 +2194,33 @@ function BookingManagement() {
                         onClick={async () => {
                           const { updateDoc, doc } = await import('firebase/firestore');
                           await updateDoc(doc(db, 'hotelBookings', selectedBooking.id), {
-                            status: 'pay_on_site_pending',
+                            status: 'confirmed',
                             'payOnSiteRequest.status': 'approved',
                             'payOnSiteRequest.approvedBy': 'admin',
                             'payOnSiteRequest.approvedAt': new Date().toISOString(),
                           });
+                          
+                          // Close details dialog and open edit dialog for confirmation numbers
+                          setDetailsDialog(false);
+                          setNewStatus('confirmed');
+                          
+                          // Set up confirmation numbers for individual bookings
+                          if (selectedBooking.individualBookings) {
+                            const confirmNums = {};
+                            selectedBooking.individualBookings.forEach((booking, idx) => {
+                              confirmNums[`booking_${idx}`] = '';
+                            });
+                            setConfirmationNumbers(confirmNums);
+                          } else {
+                            setConfirmationNumber('');
+                          }
+                          
+                          setEditDialog(true);
+                          
                           showDialog({
                             type: 'success',
-                            message: 'Pay on site request approved!',
+                            message: 'Pay on site approved! Now add confirmation numbers.',
                           });
-                          fetchBookings();
-                          setDetailsDialog(false);
                         }}
                       >
                         Approve
