@@ -24,16 +24,12 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 const useStyles = makeStyles()((theme) => ({
   dialog: {
     '& .MuiDialog-paper': {
-      background: theme.palette.mode === 'dark'
-        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)'
-        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+      background: 'rgba(30, 41, 59, 0.7)',
       backdropFilter: 'blur(40px)',
       WebkitBackdropFilter: 'blur(40px)',
       borderRadius: theme.spacing(3),
-      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.9)'}`,
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15)'
-        : '0 20px 60px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 1)',
+      border: '1px solid rgba(255, 255, 255, 0.18)',
+      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
       minWidth: 400,
       maxWidth: 600,
       [theme.breakpoints.down('sm')]: {
@@ -53,12 +49,7 @@ const useStyles = makeStyles()((theme) => ({
     fontWeight: 700,
     fontSize: '1.5rem',
     flex: 1,
-    background: theme.palette.mode === 'dark'
-      ? 'linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%)'
-      : 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: '#ffffff',
   },
   content: {
     padding: theme.spacing(2, 3, 3),
@@ -66,7 +57,7 @@ const useStyles = makeStyles()((theme) => ({
   message: {
     fontSize: '1rem',
     lineHeight: 1.6,
-    color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+    color: 'rgba(255, 255, 255, 0.95)',
     whiteSpace: 'pre-line',
   },
   actions: {
@@ -94,10 +85,8 @@ const useStyles = makeStyles()((theme) => ({
     },
   },
   secondaryButton: {
-    background: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.1)'
-      : 'rgba(99, 102, 241, 0.1)',
-    color: theme.palette.mode === 'dark' ? '#fff' : '#6366f1',
+    background: 'rgba(255, 255, 255, 0.1)',
+    color: '#fff',
     border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : '#6366f1'}`,
     '&:hover': {
       background: theme.palette.mode === 'dark'

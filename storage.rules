@@ -48,6 +48,12 @@ service firebase.storage {
       allow read: if true;
       allow write: if isAuthenticated();
     }
+    
+    // Payment proofs - authenticated users can upload, read their own
+    match /paymentProofs/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
   }
 }
 
