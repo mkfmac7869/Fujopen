@@ -80,6 +80,7 @@ const useStyles = makeStyles({ uniqId: 'booking-management' })((theme) => ({
 const statusConfig = {
   reviewing: { label: 'Reviewing by OC', color: 'info' },
   approved: { label: 'Approved - Awaiting Payment', color: 'warning' },
+  pay_on_site_pending: { label: 'Pending Pay on Site', color: 'secondary' },
   payment_uploaded: { label: 'Payment Proof Uploaded', color: 'primary' },
   confirmed: { label: 'Confirmed', color: 'success' },
   cancelled: { label: 'Cancelled', color: 'error' },
@@ -936,7 +937,10 @@ function BookingManagement() {
               scrollButtons="auto"
             >
               <Tab label="All" value="all" />
-              <Tab label="Pending" value="pending" />
+              <Tab label="Reviewing by OC" value="reviewing" />
+              <Tab label="Approved - Awaiting Payment" value="approved" />
+              <Tab label="Pending Pay on Site" value="pay_on_site_pending" />
+              <Tab label="Payment Proof Uploaded" value="payment_uploaded" />
               <Tab label="Confirmed" value="confirmed" />
               <Tab label="Cancelled" value="cancelled" />
               <Tab label="Completed" value="completed" />
@@ -2146,8 +2150,8 @@ function BookingManagement() {
 
               {/* Pay on Site Request */}
               {selectedBooking.payOnSiteRequest?.requested && (
-                <Box sx={{ mb: 3, p: 3, background: 'rgba(255, 152, 0, 0.1)', borderRadius: 2, border: '2px solid', borderColor: 'warning.main' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'warning.main' }}>
+                <Box sx={{ mb: 3, p: 3, background: 'rgba(139, 92, 246, 0.1)', borderRadius: 2, border: '2px solid', borderColor: '#8b5cf6' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#8b5cf6' }}>
                     🏢 Pay on Site Request
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
