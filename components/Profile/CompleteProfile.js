@@ -12,6 +12,7 @@ import {
   Alert,
   useTheme,
   Fade,
+  Autocomplete,
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { alpha } from '@mui/material/styles';
@@ -31,6 +32,9 @@ import { db, storage, auth } from '../../lib/firebase';
 import ClayDeco from '../Artworks/ClayDeco';
 import Title from '../Title';
 import { useText, useTextAlign } from 'theme/common';
+import countryCodes from '../../lib/countryCodes';
+import CustomDialog from '../Utils/CustomDialog';
+import { useCustomDialog } from '../Utils/useCustomDialog';
 
 const useStyles = makeStyles({ uniqId: 'complete-profile' })((theme) => ({
   decoration: {
@@ -177,6 +181,7 @@ function CompleteProfile({ onComplete }) {
 
   const [formData, setFormData] = useState({
     phone: '',
+    countryCode: null,
     position: '',
     teamName: '',
     country: '',
@@ -185,6 +190,7 @@ function CompleteProfile({ onComplete }) {
   const [teamLogo, setTeamLogo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { dialog, showDialog, closeDialog } = useCustomDialog();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -209,7 +215,7 @@ function CompleteProfile({ onComplete }) {
 
   const handleSubmit = async () => {
     // Validate required fields
-    if (!formData.phone || !formData.position || !formData.teamName || !formData.country || !teamLogo) {
+    if (!formData.phone || !formData.countryCode || !formData.position || !formData.teamName || !formData.country || !teamLogo) {
       setError('Please fill all fields and upload a logo');
       return;
     }
@@ -230,9 +236,14 @@ function CompleteProfile({ onComplete }) {
         await updateProfile(user, { photoURL });
       }
 
+      // Combine country code with phone number
+      const fullPhoneNumber = formData.countryCode 
+        ? `${formData.countryCode.phone} ${formData.phone}` 
+        : formData.phone;
+
       // Update Firestore with complete profile
       await updateDoc(doc(db, 'users', user.uid), {
-        phone: formData.phone,
+        phone: fullPhoneNumber,
         position: formData.position,
         teamName: formData.teamName,
         country: formData.country,
@@ -242,32 +253,54 @@ function CompleteProfile({ onComplete }) {
         updatedAt: new Date().toISOString(),
       });
 
-      // Send admin notification for Google users who completed profile
+      // Send welcome email to user
       try {
-        await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendAdminNotification', {
+        const emailResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendWelcomeEmail', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            type: 'profile_completed',
-            userEmail: user.email,
-            userName: user.displayName || formData.teamName,
+            email: user.email,
+            name: user.displayName || formData.teamName,
+          }),
+        });
+        
+        if (emailResponse.ok) {
+          console.log('✅ Welcome email sent to user');
+        }
+      } catch (emailError) {
+        console.error('⚠️ Failed to send welcome email:', emailError);
+      }
+
+      // Send admin notification for Google users who completed profile
+      try {
+        const adminEmailResponse = await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendAdminNotification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            name: user.displayName || formData.teamName,
             teamName: formData.teamName,
             country: formData.country,
           }),
         });
-        console.log('✅ Admin notification sent');
+        
+        if (adminEmailResponse.ok) {
+          console.log('✅ Admin notification sent');
+        }
       } catch (emailError) {
         console.error('⚠️ Failed to send admin notification:', emailError);
-        // Don't fail the whole process if email fails
       }
 
-      // Sign out user and show success message
-      setError('');
-      alert('Profile completed successfully! Your account is now pending admin approval. You will receive an email once approved.');
-      
-      // Sign out and redirect to login
-      await signOut(auth);
-      window.location.href = '/login';
+      // Show success dialog
+      showDialog({
+        type: 'success',
+        message: 'Profile completed successfully! Your account is now pending admin approval. You will receive an email once approved.',
+        onClose: async () => {
+          // Sign out and redirect to login
+          await signOut(auth);
+          window.location.href = '/login';
+        }
+      });
     } catch (error) {
       console.error('Error completing profile:', error);
       setError(error.message || 'Failed to complete profile');
@@ -310,17 +343,61 @@ function CompleteProfile({ onComplete }) {
               )}
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    variant="filled"
-                    label="Phone Number"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className={classes.inputField}
-                    required
-                  />
+                {/* Phone Number with Country Code */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                    Phone Number <span style={{ color: 'red' }}>*</span>
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={5}>
+                      <Autocomplete
+                        fullWidth
+                        options={countryCodes}
+                        getOptionLabel={(option) => `${option.phone} ${option.name}`}
+                        value={formData.countryCode}
+                        onChange={(event, newValue) => {
+                          setFormData({ ...formData, countryCode: newValue });
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            variant="filled"
+                            label="Country Code"
+                            className={classes.inputField}
+                            placeholder="Search country..."
+                            required
+                          />
+                        )}
+                        renderOption={(props, option) => (
+                          <Box component="li" {...props}>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 60 }}>
+                                {option.phone}
+                              </Typography>
+                              <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                                {option.name}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={7}>
+                      <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Phone Number"
+                        name="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className={classes.inputField}
+                        placeholder="501234567"
+                        required
+                        helperText="Enter numbers only (without country code)"
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
@@ -456,6 +533,8 @@ function CompleteProfile({ onComplete }) {
           </Fade>
         </Paper>
       </Container>
+      
+      <CustomDialog {...dialog} onClose={closeDialog} />
     </>
   );
 }
