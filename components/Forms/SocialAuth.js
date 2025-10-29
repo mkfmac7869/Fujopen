@@ -17,14 +17,19 @@ function SocialAuth() {
     try {
       setError('');
       setLoading(true);
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
       
       // Preserve locale in redirect
       const locale = router.query.locale || 'en';
-      // Check if profile needs to be completed
-      // Note: profileCompleted will be updated by AuthContext after sign-in
-      // We'll redirect to complete-profile page which will check and redirect accordingly
-      router.push(`/${locale}/complete-profile`);
+      
+      // Check if user needs to complete profile
+      if (result && result.needsProfileCompletion) {
+        console.log('↪️ Redirecting to complete profile...');
+        router.push(`/${locale}/complete-profile`);
+      } else {
+        console.log('↪️ Redirecting to home...');
+        router.push(`/${locale}/`);
+      }
     } catch (error) {
       console.error('Google sign-in error:', error);
       // Show the actual error message

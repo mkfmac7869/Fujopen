@@ -25,9 +25,9 @@ import WorkIcon from '@mui/icons-material/Work';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useAuth } from '../../lib/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
-import { updateProfile } from 'firebase/auth';
+import { updateProfile, signOut } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../lib/firebase';
+import { db, storage, auth } from '../../lib/firebase';
 import ClayDeco from '../Artworks/ClayDeco';
 import Title from '../Title';
 import { useText, useTextAlign } from 'theme/common';
@@ -242,13 +242,32 @@ function CompleteProfile({ onComplete }) {
         updatedAt: new Date().toISOString(),
       });
 
-      // Call completion callback
-      if (onComplete) {
-        onComplete();
+      // Send admin notification for Google users who completed profile
+      try {
+        await fetch('https://us-central1-fuj2026-f22a7.cloudfunctions.net/sendAdminNotification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'profile_completed',
+            userEmail: user.email,
+            userName: user.displayName || formData.teamName,
+            teamName: formData.teamName,
+            country: formData.country,
+          }),
+        });
+        console.log('✅ Admin notification sent');
+      } catch (emailError) {
+        console.error('⚠️ Failed to send admin notification:', emailError);
+        // Don't fail the whole process if email fails
       }
+
+      // Sign out user and show success message
+      setError('');
+      alert('Profile completed successfully! Your account is now pending admin approval. You will receive an email once approved.');
       
-      // Refresh to update everything
-      window.location.reload();
+      // Sign out and redirect to login
+      await signOut(auth);
+      window.location.href = '/login';
     } catch (error) {
       console.error('Error completing profile:', error);
       setError(error.message || 'Failed to complete profile');
